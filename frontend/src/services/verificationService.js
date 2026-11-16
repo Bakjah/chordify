@@ -1,7 +1,11 @@
 import api from './api.js'
 
-// TODO: ajukan verified user
 export const verificationService = {
-  // contoh: list: (params) => api.get('/verification', { params }).then((r) => r.data),
-  _api: api,
+  // --- Member ---
+  submit: (payload) => api.post('/verification', payload).then((r) => r.data),
+  mine: () => api.get('/verification/mine').then((r) => r.data),
+
+  // --- Admin ---
+  adminList: (status) => api.get('/admin/verification', { params: { status } }).then((r) => r.data),
+  adminReview: (id, decision) => api.put(`/admin/verification/${id}/review`, decision).then((r) => r.data),
 }

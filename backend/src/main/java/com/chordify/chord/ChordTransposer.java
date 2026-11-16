@@ -1,9 +1,29 @@
 package com.chordify.chord;
 
-/** TODO: transpose chord sebanyak `amount` semitone (juga dipakai untuk capo). */
+import org.springframework.stereotype.Component;
+
+/**
+ * Memindahkan chord naik atau turun beberapa semitone.
+ *
+ * <p>Contoh: {@code process("D/F#", 2)} menghasilkan {@code "E/G#"}. Not akar dan
+ * nada bass sama-sama digeser, sementara karakter tambahan seperti {@code m7},
+ * {@code add9}, atau {@code sus4} tetap utuh.
+ */
+@Component
 public class ChordTransposer extends ChordProcessor {
+
+    /**
+     * Menggeser satu chord.
+     *
+     * @param chord chord yang akan digeser
+     * @param amount jumlah semitone; positif naik, negatif turun
+     * @return simbol chord hasil geser
+     */
     @Override
-    public String process(String chordText, int amount) {
-        return chordText;
+    public String process(Chord chord, int amount) {
+        if (chord == null) {
+            return null;
+        }
+        return chord.transpose(amount).toString();
     }
 }

@@ -1,9 +1,11 @@
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import PageShell from '../../components/layout/PageShell.jsx'
+import SearchField from '../../components/search/SearchField.jsx'
 import SongCard from '../../components/song/SongCard.jsx'
-import { POPULAR_SONGS, RECENT_SONGS } from '../../constants/mockSongs.js'
 import { ROUTES } from '../../constants/routes.js'
 import { useAuth } from '../../hooks/useAuth.js'
+import { songService } from '../../services/songService.js'
 
 function greeting() {
   const hour = new Date().getHours()
@@ -14,7 +16,31 @@ function greeting() {
 
 export default function HomePage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const name = user?.username || 'Bagja'
+  const [songs, setSongs] = useState([])
+  const [keyword, setKeyword] = useState('')
+
+  const submitSearch = () => {
+    const q = keyword.trim()
+    navigate(q ? `${ROUTES.SONGS}?q=${encodeURIComponent(q)}` : ROUTES.SONGS)
+  }
+
+  useEffect(() => {
+    let aktif = true
+    songService
+      .list({ size: 8 })
+      .then((data) => {
+        if (aktif) setSongs(data.content)
+      })
+      .catch(() => {})
+    return () => {
+      aktif = false
+    }
+  }, [])
+
+  const recentSongs = songs.slice(0, 4)
+  const popularSongs = songs.slice(4, 8)
 
   return (
     <PageShell>
@@ -26,12 +52,14 @@ export default function HomePage() {
         Find your next song, learn a new chord, and keep playing.
       </p>
 
-      <div className="mt-[22px] flex h-[58px] w-full items-center rounded-[12px] bg-app-card pl-[25px]">
-        <span className="text-[15px] text-app-muted">⌕</span>
-        <span className="ml-[10px] text-[15px] text-app-muted">
-          Search songs, artists, or chord progressions
-        </span>
-      </div>
+      <SearchField
+        value={keyword}
+        onChange={setKeyword}
+        onSubmit={submitSearch}
+        placeholder="Search songs, artists, or chord progressions"
+        className="mt-[22px] h-[58px] w-full rounded-[12px] bg-app-card pl-[25px]"
+        inputClassName="text-[15px]"
+      />
 
       <div className="mt-[40px] flex items-start justify-between">
         <h2 className="text-[22px] font-bold leading-[32px] text-app-text">Recently Added</h2>
@@ -44,10 +72,10 @@ export default function HomePage() {
       </div>
 
       <div className="mt-[6px] flex gap-[20px]">
-        {RECENT_SONGS.map((song) => (
+        {recentSongs.map((song) => (
           <SongCard
             key={song.id}
-            song={song}
+            song={{ ...song, meta: song.verified ? '✓ Verified Musician' : `by ${song.contributor}` }}
             variant={song.verified ? 'verified' : 'contributor'}
           />
         ))}
@@ -58,8 +86,8 @@ export default function HomePage() {
       </h2>
 
       <div className="mt-[8px] flex gap-[20px]">
-        {POPULAR_SONGS.map((song) => (
-          <SongCard key={song.id} song={song} variant="community" />
+        {popularSongs.map((song) => (
+          <SongCard key={song.id} song={{ ...song, meta: 'Community contribution' }} variant="community" />
         ))}
       </div>
       </div>

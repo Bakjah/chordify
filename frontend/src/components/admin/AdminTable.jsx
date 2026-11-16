@@ -9,14 +9,16 @@ const STATUS_TONES = {
   ACTIVE: 'text-app-accent',
   VERIFIED: 'text-app-accent',
   APPROVED: 'text-app-accent',
+  RESOLVED: 'text-app-accent',
   OPEN: 'text-[#fbbf24]',
   PENDING: 'text-[#fbbf24]',
   REVIEWED: 'text-app-muted',
   NONE: 'text-app-muted',
+  DISMISSED: 'text-app-muted',
   REJECTED: 'text-[#ef4444]',
 }
 
-export default function AdminTable({ columns, rows, searchPlaceholder }) {
+export default function AdminTable({ columns, rows, searchPlaceholder, renderActions }) {
   const [keyword, setKeyword] = useState('')
 
   const visible = rows.filter((row) =>
@@ -24,6 +26,11 @@ export default function AdminTable({ columns, rows, searchPlaceholder }) {
       String(row[column.key] ?? '').toLowerCase().includes(keyword.trim().toLowerCase())
     )
   )
+
+  // Aksi di kolom paling kanan. Kalau tabel sudah memakai enam kolom,
+  // slot terakhir dipakai STATUS, jadi aksi digeser ke kanan supaya tidak tumpang tindih.
+  // Kalau kolomnya lebih sedikit, aksi diletakkan sesudah kolom terakhir.
+  const actionOffset = columns.length > 5 ? 1015 : VALUE_OFFSETS[columns.length - 1] + 190
 
   return (
     <div className="mt-[15px]">
@@ -45,7 +52,7 @@ export default function AdminTable({ columns, rows, searchPlaceholder }) {
         </button>
       </div>
 
-      <div className="relative mt-[26px] h-[650px] w-[1110px] rounded-[12px] bg-app-card">
+      <div className="relative mt-[26px] w-[1110px] rounded-[12px] bg-app-card pb-[90px]">
         {columns.map((column, index) => (
           <p
             key={column.key}
@@ -56,32 +63,49 @@ export default function AdminTable({ columns, rows, searchPlaceholder }) {
           </p>
         ))}
 
-        {visible.map((row, rowIndex) => (
-          <div
-            key={rowIndex}
-            className={`absolute left-[15px] top-[65px] h-[68px] w-[1080px] rounded-[7px] ${
-              rowIndex % 2 === 0 ? 'bg-app-elevated' : 'bg-app-card'
-            }`}
-          >
-            {columns.map((column, index) => {
-              const value = row[column.key]
-              const tone = STATUS_TONES[value] || 'text-app-text'
-              return (
-                <p
-                  key={column.key}
-                  className={`absolute top-[25px] text-[11px] leading-[20px] ${tone}`}
-                  style={{ left: `${VALUE_OFFSETS[index] - 15}px` }}
-                >
-                  {value}
-                </p>
-              )
-            })}
-          </div>
-        ))}
+        <div className="mt-[16px] flex flex-col gap-[8px] px-[15px]">
+          {visible.map((row, rowIndex) => (
+            <div
+              key={rowIndex}
+              className={`relative h-[68px] w-[1080px] rounded-[7px] ${
+                rowIndex % 2 === 0 ? 'bg-app-elevated' : 'bg-app-card'
+              }`}
+            >
+              {columns.map((column, index) => {
+                const value = row[column.key]
+                const tone = STATUS_TONES[value] || 'text-app-text'
+                return (
+                  <p
+                    key={column.key}
+                    className={`absolute top-[25px] text-[11px] leading-[20px] ${tone}`}
+                    style={{ left: `${VALUE_OFFSETS[index] - 15}px` }}
+                  >
+                    {value}
+                  </p>
+                )
+              })}
 
-        <div className="absolute left-[20px] top-[600px] flex w-[1070px] items-center justify-between">
+              {renderActions && (
+                <div
+                  className="absolute top-[24px] flex gap-[8px]"
+                  style={{ left: `${actionOffset - 15}px` }}
+                >
+                  {renderActions(row)}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {visible.length === 0 && (
+            <p className="py-[40px] text-center text-[12px] leading-[20px] text-app-muted">
+              Tidak ada data yang cocok.
+            </p>
+          )}
+        </div>
+
+        <div className="absolute bottom-[20px] left-[20px] flex w-[1070px] items-center justify-between">
           <p className="font-mono text-[10px] leading-[20px] text-app-muted">
-            Showing 1–{visible.length} of 128
+            Showing 1–{visible.length} of {visible.length}
           </p>
           <div className="flex items-center gap-[20px] font-mono text-[10px] leading-[20px] text-app-muted">
             <span>‹</span>

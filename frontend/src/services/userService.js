@@ -1,7 +1,8 @@
 import api from './api.js'
 
-// TODO: profil publik kontributor
+// Profil publik seorang kontributor.
 export const userService = {
-  // contoh: list: (params) => api.get('/users', { params }).then((r) => r.data),
-  _api: api,
+  // username tanpa tanda "@".
+  profile: (username) =>
+    api.get(`/users/${encodeURIComponent(username)}/profile`).then((r) => r.data),
 }

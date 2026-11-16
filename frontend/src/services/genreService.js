@@ -1,7 +1,8 @@
 import api from './api.js'
 
-// TODO: list genre untuk filter
+// Lapisan data genre, dipakai untuk filter di halaman library.
 export const genreService = {
-  // contoh: list: (params) => api.get('/genres', { params }).then((r) => r.data),
-  _api: api,
+  list: () => api.get('/genres').then((r) => r.data),
+  search: (q) => api.get('/genres/search', { params: { q } }).then((r) => r.data),
+  detail: (id) => api.get(`/genres/${id}`).then((r) => r.data),
 }

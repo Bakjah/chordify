@@ -1,9 +1,15 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import PageShell from '../../components/layout/PageShell.jsx'
+import { ROUTES } from '../../constants/routes.js'
+import { getErrorMessage } from '../../services/api.js'
+import { songService } from '../../services/songService.js'
 import { CHORD_KEYS } from '../../utils/chordTransposer.js'
+import { parseLyrics } from '../../utils/lyricsParser.js'
 
 const GENRE_OPTIONS = ['Pop', 'Pop Rock', 'Rock', 'Indie', 'Alternative', 'Acoustic']
 const DIFFICULTY_OPTIONS = ['Beginner', 'Easy', 'Intermediate', 'Advanced']
+const KEY_OPTIONS = CHORD_KEYS.flatMap((note) => [`${note} Major`, `${note} Minor`])
 
 const FIELD_CLASS =
   'absolute left-[30px] w-[750px] h-[42px] rounded-[8px] bg-app-elevated pl-[16px] text-[11px] leading-[20px] text-app-text outline-none placeholder:text-app-muted'
@@ -11,6 +17,7 @@ const LABEL_CLASS =
   'absolute left-[30px] text-[12px] font-medium leading-[20px] text-app-text'
 
 export default function AddSongPage() {
+  const navigate = useNavigate()
   const [form, setForm] = useState({
     title: '',
     artist: '',
@@ -19,9 +26,32 @@ export default function AddSongPage() {
     difficulty: 'Beginner',
     lyrics: '',
   })
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
 
   const update = (field) => (event) =>
     setForm((prev) => ({ ...prev, [field]: event.target.value }))
+
+  const submit = async (event) => {
+    event.preventDefault()
+    setSaving(true)
+    setMessage('')
+    try {
+      await songService.create({
+        title: form.title,
+        artist: form.artist,
+        genre: form.genre,
+        key: form.key,
+        difficulty: form.difficulty,
+        artwork: '#315a52',
+        lyrics: parseLyrics(form.lyrics),
+      })
+      navigate(ROUTES.CONTRIBUTIONS)
+    } catch (err) {
+      setMessage(getErrorMessage(err, 'Lagu tidak dapat dikirim.'))
+      setSaving(false)
+    }
+  }
 
   return (
     <PageShell>
@@ -32,7 +62,7 @@ export default function AddSongPage() {
         </p>
 
         <div className="mt-[25px] flex gap-[30px]">
-          <form className="relative h-[740px] w-[820px] rounded-[14px] bg-app-card">
+          <form className="relative h-[740px] w-[820px] rounded-[14px] bg-app-card" onSubmit={submit}>
             <p className="absolute left-[30px] top-[25px] font-mono text-[11px] font-bold leading-[20px] text-app-accent">
               SONG DETAILS
             </p>
@@ -86,7 +116,7 @@ export default function AddSongPage() {
               onChange={update('key')}
             >
               <option value="">Choose a key  ▾</option>
-              {CHORD_KEYS.map((key) => (
+              {KEY_OPTIONS.map((key) => (
                 <option key={key} value={key}>
                   {key}
                 </option>
@@ -122,16 +152,23 @@ export default function AddSongPage() {
 
             <button
               type="submit"
-              className="absolute left-[30px] top-[690px] h-[42px] w-[170px] rounded-[9px] bg-app-accent text-[12px] font-bold leading-[20px] text-app-bg"
+              disabled={saving}
+              className="absolute left-[30px] top-[690px] h-[42px] w-[170px] rounded-[9px] bg-app-accent text-[12px] font-bold leading-[20px] text-app-bg disabled:opacity-60"
             >
-              Publish Song
+              {saving ? 'Publishing…' : 'Publish Song'}
             </button>
             <button
               type="button"
+              onClick={() => navigate(ROUTES.CONTRIBUTIONS)}
               className="absolute left-[215px] top-[690px] h-[42px] w-[110px] rounded-[9px] bg-app-elevated text-[12px] font-medium leading-[20px] text-app-text"
             >
               Cancel
             </button>
+            {message && (
+              <p className="absolute left-[340px] top-[700px] text-[11px] leading-[20px] text-app-muted">
+                {message}
+              </p>
+            )}
           </form>
 
           <aside className="relative h-[205px] w-[260px] rounded-[12px] bg-app-card">

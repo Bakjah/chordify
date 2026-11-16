@@ -22,6 +22,8 @@ export const ROUTES = {
 
   ADMIN: '/admin',
   ADMIN_SONGS: '/admin/songs',
+  ADMIN_ARTISTS: '/admin/artists',
+  ADMIN_GENRES: '/admin/genres',
   ADMIN_USERS: '/admin/users',
   ADMIN_REPORTS: '/admin/reports',
   ADMIN_VERIFICATION: '/admin/verification',

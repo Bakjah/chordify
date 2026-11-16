@@ -1,11 +1,63 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import PageShell from '../../components/layout/PageShell.jsx'
-import { VERIFICATION_CATEGORIES } from '../../constants/mockLibrary.js'
+import { VERIFICATION_CATEGORIES } from '../../constants/library.js'
+import { getErrorMessage } from '../../services/api.js'
+import { verificationService } from '../../services/verificationService.js'
+
+const STATUS_STYLE = {
+  PENDING: { chip: 'bg-[#493a1b]', text: 'text-[#fbbf24]' },
+  APPROVED: { chip: 'bg-[#183c29]', text: 'text-app-accent' },
+  REJECTED: { chip: 'bg-[#4a1f1f]', text: 'text-[#ef4444]' },
+}
+
+const formatDate = (value) =>
+  value ? new Date(value).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'
 
 export default function VerificationRequestPage() {
   const [category, setCategory] = useState('Verified Musician')
   const [proof, setProof] = useState('')
   const [proofUrl, setProofUrl] = useState('')
+  const [applications, setApplications] = useState([])
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+
+  const loadApplications = () =>
+    verificationService
+      .mine()
+      .then(setApplications)
+      .catch(() => {
+        // Gagal memuat riwayat tidak boleh menutupi form pengajuan.
+      })
+
+  useEffect(() => {
+    loadApplications()
+  }, [])
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    if (!proof.trim() && !proofUrl.trim()) {
+      setError('Isi minimal salah satu: deskripsi bukti atau tautan bukti.')
+      return
+    }
+    setSubmitting(true)
+    setError('')
+    setNotice('')
+    try {
+      await verificationService.submit({ category, proof: proof.trim(), proofUrl: proofUrl.trim() })
+      setProof('')
+      setProofUrl('')
+      setNotice('Pengajuan terkirim dan sedang ditinjau admin.')
+      await loadApplications()
+    } catch (err) {
+      setError(getErrorMessage(err, 'Pengajuan gagal dikirim.'))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const latest = applications[0]
+  const statusStyle = latest ? STATUS_STYLE[latest.status] || STATUS_STYLE.PENDING : null
 
   return (
     <PageShell>
@@ -18,7 +70,7 @@ export default function VerificationRequestPage() {
         </p>
 
         <div className="mt-[30px] flex gap-[30px]">
-          <form className="relative h-[680px] w-[760px] rounded-[14px] bg-app-card">
+          <form className="relative h-[680px] w-[760px] rounded-[14px] bg-app-card" onSubmit={handleSubmit}>
             <p className="absolute left-[30px] top-[30px] font-mono text-[10px] font-bold leading-[20px] text-app-accent">
               VERIFICATION CATEGORY
             </p>
@@ -70,10 +122,18 @@ export default function VerificationRequestPage() {
 
             <button
               type="submit"
-              className="absolute left-[30px] top-[510px] h-[44px] w-[190px] rounded-[9px] bg-app-accent text-[12px] font-bold leading-[20px] text-app-bg"
+              disabled={submitting}
+              className="absolute left-[30px] top-[510px] h-[44px] w-[190px] rounded-[9px] bg-app-accent text-[12px] font-bold leading-[20px] text-app-bg disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Submit Request
+              {submitting ? 'Submitting…' : 'Submit Request'}
             </button>
+
+            {error && (
+              <p className="absolute left-[30px] top-[566px] text-[11px] leading-[18px] text-[#ef4444]">{error}</p>
+            )}
+            {notice && (
+              <p className="absolute left-[30px] top-[566px] text-[11px] leading-[18px] text-app-accent">{notice}</p>
+            )}
           </form>
 
           <div className="flex flex-col gap-[25px]">
@@ -89,18 +149,31 @@ export default function VerificationRequestPage() {
               </ol>
             </aside>
 
-            <aside className="relative h-[120px] w-[320px] rounded-[12px] bg-app-card">
+            <aside className="relative h-[150px] w-[320px] rounded-[12px] bg-app-card">
               <p className="absolute left-[24px] top-[23px] font-mono text-[10px] font-bold leading-[20px] text-app-muted">
                 CURRENT APPLICATION
               </p>
-              <div className="absolute left-[24px] top-[55px] h-[28px] w-[105px] rounded-[14px] bg-[#493a1b]">
-                <p className="ml-[19px] font-mono text-[9px] font-bold leading-[20px] text-[#fbbf24]">
-                  PENDING
+              {latest && statusStyle ? (
+                <>
+                  <div className={`absolute left-[24px] top-[55px] h-[28px] rounded-[14px] px-[19px] ${statusStyle.chip}`}>
+                    <p className={`font-mono text-[9px] font-bold leading-[28px] ${statusStyle.text}`}>
+                      {latest.status}
+                    </p>
+                  </div>
+                  <p className="absolute left-[24px] top-[93px] text-[10px] leading-[20px] text-app-muted">
+                    Submitted {formatDate(latest.createdAt)}
+                  </p>
+                  {latest.adminNote && (
+                    <p className="absolute left-[24px] top-[113px] w-[272px] text-[10px] leading-[16px] text-app-muted">
+                      {latest.adminNote}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="absolute left-[24px] top-[58px] text-[11px] leading-[20px] text-app-muted">
+                  Belum ada pengajuan.
                 </p>
-              </div>
-              <p className="absolute left-[24px] top-[93px] text-[10px] leading-[20px] text-app-muted">
-                Submitted Oct 28, 2026
-              </p>
+              )}
             </aside>
           </div>
         </div>

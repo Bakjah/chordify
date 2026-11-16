@@ -1,21 +1,50 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import ChordDiagram from '../../components/chord/ChordDiagram.jsx'
 import PageShell from '../../components/layout/PageShell.jsx'
-import { CHORD_CATEGORIES, CHORDS } from '../../constants/mockChords.js'
+import SearchField from '../../components/search/SearchField.jsx'
+import { CHORD_CATEGORIES } from '../../constants/chords.js'
+import { getErrorMessage } from '../../services/api.js'
+import { chordService } from '../../services/chordService.js'
 
 export default function ChordDictionaryPage() {
-  const [keyword, setKeyword] = useState('')
-  const [category, setCategory] = useState('POPULAR')
+  // Kata kunci disimpan di URL supaya hasil pencarian kamus chord bisa dibagikan.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const keyword = searchParams.get('q') || ''
 
-  const chords = useMemo(() => {
-    const query = keyword.trim().toLowerCase()
-    return CHORDS.filter((chord) => {
-      const matchQuery =
-        !query || chord.name.toLowerCase().includes(query) || chord.symbol.toLowerCase().includes(query)
-      const matchCategory = category === 'POPULAR' || chord.category === category
-      return matchQuery && matchCategory
-    })
-  }, [keyword, category])
+  const setKeyword = (value) => {
+    const next = new URLSearchParams(searchParams)
+    if (value.trim()) next.set('q', value)
+    else next.delete('q')
+    setSearchParams(next, { replace: true })
+  }
+
+  const [category, setCategory] = useState('POPULAR')
+  const [chords, setChords] = useState([])
+  const [error, setError] = useState('')
+
+  // Saat ada kata kunci, pencarian mengabaikan filter kategori supaya chord
+  // yang dicari tetap ditemukan walau tab kategori yang aktif berbeda.
+  const categoryFilter = keyword.trim() ? '' : category
+
+  useEffect(() => {
+    let active = true
+    const timer = setTimeout(async () => {
+      try {
+        const data = await chordService.list({ q: keyword.trim(), category: categoryFilter })
+        if (active) {
+          setChords(data)
+          setError('')
+        }
+      } catch (err) {
+        if (active) setError(getErrorMessage(err, 'Kamus chord tidak dapat dimuat.'))
+      }
+    }, 250)
+    return () => {
+      active = false
+      clearTimeout(timer)
+    }
+  }, [keyword, categoryFilter])
 
   return (
     <PageShell>
@@ -25,15 +54,14 @@ export default function ChordDictionaryPage() {
           Learn guitar chord shapes, finger positions, and variations.
         </p>
 
-        <div className="mt-[22px] flex h-[50px] w-[680px] items-center rounded-[10px] bg-app-card pl-[22px]">
-          <span className="text-[14px] text-app-muted">⌕</span>
-          <input
-            value={keyword}
-            onChange={(event) => setKeyword(event.target.value)}
-            placeholder="Search a chord (e.g. Cmaj7, F#m, B7)"
-            className="ml-[10px] w-full bg-transparent text-[14px] text-app-text outline-none placeholder:text-app-muted"
-          />
-        </div>
+        <SearchField
+          value={keyword}
+          onChange={setKeyword}
+          onSubmit={() => setKeyword(keyword)}
+          placeholder="Search a chord (e.g. Cmaj7, F#m, B7)"
+          className="h-[50px] w-[680px] rounded-[10px] bg-app-card pl-[22px]"
+          inputClassName="text-[14px]"
+        />
 
         <div className="mt-[31px] flex gap-[26px]">
           {CHORD_CATEGORIES.map((item) => (
@@ -42,13 +70,15 @@ export default function ChordDictionaryPage() {
               type="button"
               onClick={() => setCategory(item)}
               className={`font-mono text-[11px] leading-[20px] ${
-                category === item ? 'text-app-text' : 'text-app-accent'
+                !keyword.trim() && category === item ? 'text-app-text' : 'text-app-accent'
               }`}
             >
               {item}
             </button>
           ))}
         </div>
+
+        {error && <p className="mt-[16px] text-[13px] text-app-muted">{error}</p>}
 
         <div className="mt-[25px] grid grid-cols-3 gap-x-[30px] gap-y-[35px]">
           {chords.map((chord) => (

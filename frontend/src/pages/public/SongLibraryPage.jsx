@@ -1,30 +1,91 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import PageShell from '../../components/layout/PageShell.jsx'
-import { GENRES, SONGS, SORTS } from '../../constants/mockSongs.js'
+import SearchField from '../../components/search/SearchField.jsx'
 import { ROUTES } from '../../constants/routes.js'
+import { genreService } from '../../services/genreService.js'
+import { songService } from '../../services/songService.js'
+import { getErrorMessage } from '../../services/api.js'
+
+const ALL_GENRES = 'ALL SONGS'
+const SORTS = ['Most Relevant', 'Newest', 'Difficulty']
+
+// Pengurutan yang bisa dikirim ke server; sisanya diolah di sisi browser.
+const SERVER_SORT = {
+  'Most Relevant': 'title',
+  Newest: undefined,
+  Difficulty: 'title',
+}
 
 export default function SongLibraryPage() {
-  const [keyword, setKeyword] = useState('')
-  const [genre, setGenre] = useState('ALL SONGS')
-  const [sort, setSort] = useState('Most Relevant')
+  // Kata kunci disimpan di URL supaya hasil pencarian bisa dibagikan dan
+  // kotak search di top bar selalu sama dengan yang difilter di halaman ini.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const keyword = searchParams.get('q') || ''
 
-  const songs = useMemo(() => {
-    const filtered = SONGS.filter((song) => {
-      const matchGenre =
-        genre === 'ALL SONGS' || song.genre.toUpperCase().includes(genre.split(' ')[0])
-      const query = keyword.trim().toLowerCase()
-      const matchKeyword =
-        !query || song.title.toLowerCase().includes(query) || song.artist.toLowerCase().includes(query)
-      return matchGenre && matchKeyword
-    })
-    if (sort === 'Newest') return [...filtered].reverse()
+  const setKeyword = (value) => {
+    const next = new URLSearchParams(searchParams)
+    if (value.trim()) next.set('q', value)
+    else next.delete('q')
+    setSearchParams(next, { replace: true })
+  }
+
+  const [genre, setGenre] = useState(ALL_GENRES)
+  const [sort, setSort] = useState('Most Relevant')
+  const [songs, setSongs] = useState([])
+  const [genres, setGenres] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let aktif = true
+    genreService
+      .list()
+      .then((data) => {
+        if (aktif) setGenres(data.map((item) => item.name))
+      })
+      .catch(() => {})
+    return () => {
+      aktif = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let aktif = true
+    setLoading(true)
+    const timer = setTimeout(() => {
+      songService
+        .list({ q: keyword.trim(), size: 100, sort: SERVER_SORT[sort] })
+        .then((data) => {
+          if (!aktif) return
+          setSongs(data.content)
+          setError('')
+        })
+        .catch((err) => {
+          if (!aktif) return
+          setError(getErrorMessage(err, 'Gagal memuat daftar lagu.'))
+        })
+        .finally(() => {
+          if (aktif) setLoading(false)
+        })
+    }, keyword ? 250 : 0)
+    return () => {
+      aktif = false
+      clearTimeout(timer)
+    }
+  }, [keyword, sort])
+
+  const visibleSongs = useMemo(() => {
+    let list = songs
+    if (genre !== ALL_GENRES) {
+      list = list.filter((song) => song.genre === genre)
+    }
     if (sort === 'Difficulty') {
       const rank = { Beginner: 0, Easy: 1, Intermediate: 2 }
-      return [...filtered].sort((a, b) => rank[a.difficulty] - rank[b.difficulty])
+      list = [...list].sort((a, b) => (rank[a.difficulty] ?? 3) - (rank[b.difficulty] ?? 3))
     }
-    return filtered
-  }, [keyword, genre, sort])
+    return list
+  }, [songs, genre, sort])
 
   return (
     <PageShell>
@@ -35,15 +96,14 @@ export default function SongLibraryPage() {
       </p>
 
       <div className="mt-[22px] flex gap-[15px]">
-        <div className="flex h-[50px] flex-1 items-center rounded-[10px] bg-app-card pl-[22px]">
-          <span className="text-[14px] text-app-muted">⌕</span>
-          <input
-            value={keyword}
-            onChange={(event) => setKeyword(event.target.value)}
-            placeholder="Search by song title or artist"
-            className="ml-[10px] w-full bg-transparent text-[14px] text-app-text outline-none placeholder:text-app-muted"
-          />
-        </div>
+        <SearchField
+          value={keyword}
+          onChange={setKeyword}
+          onSubmit={() => setKeyword(keyword)}
+          placeholder="Search by song title or artist"
+          className="h-[50px] flex-1 rounded-[10px] bg-app-card pl-[22px]"
+          inputClassName="text-[14px]"
+        />
 
         <label className="relative flex h-[50px] w-[175px] shrink-0 items-center rounded-[10px] bg-app-card px-[20px]">
           <select
@@ -51,9 +111,12 @@ export default function SongLibraryPage() {
             onChange={(event) => setGenre(event.target.value)}
             className="w-full appearance-none bg-transparent text-[14px] text-app-text outline-none"
           >
-            {GENRES.map((item) => (
+            <option value={ALL_GENRES} className="bg-app-card">
+              Genre
+            </option>
+            {genres.map((item) => (
               <option key={item} value={item} className="bg-app-card">
-                {item === 'ALL SONGS' ? 'Genre' : item}
+                {item}
               </option>
             ))}
           </select>
@@ -77,7 +140,7 @@ export default function SongLibraryPage() {
       </div>
 
       <div className="mt-[31px] flex gap-[26px]">
-        {GENRES.map((item) => (
+        {[ALL_GENRES, ...genres].map((item) => (
           <button
             key={item}
             type="button"
@@ -91,8 +154,10 @@ export default function SongLibraryPage() {
         ))}
       </div>
 
+      {error && <p className="mt-[20px] text-[13px] text-app-muted">{error}</p>}
+
       <div className="mt-[25px] flex flex-col gap-[16px]">
-        {songs.map((song) => (
+        {visibleSongs.map((song) => (
           <Link
             key={song.id}
             to={ROUTES.SONG_DETAIL(song.id)}
@@ -128,6 +193,10 @@ export default function SongLibraryPage() {
             </p>
           </Link>
         ))}
+
+        {!loading && !error && visibleSongs.length === 0 && (
+          <p className="text-[14px] leading-[22px] text-app-muted">Belum ada lagu yang cocok.</p>
+        )}
       </div>
     </div>
     </PageShell>

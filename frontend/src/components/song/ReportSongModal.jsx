@@ -1,9 +1,8 @@
 import { useState } from 'react'
-
-const REASONS = ['Incorrect chords', 'Copyright issue', 'Spam / misleading']
+import { REPORT_CATEGORIES } from '../../services/reportService.js'
 
 export default function ReportSongModal({ onClose, onSubmit }) {
-  const [reason, setReason] = useState(null)
+  const [category, setCategory] = useState(null)
   const [details, setDetails] = useState('')
 
   return (
@@ -25,19 +24,19 @@ export default function ReportSongModal({ onClose, onSubmit }) {
         <p className="mt-[14px] text-[14px] font-semibold leading-[21px] text-[#ebebeb]">
           Why are you reporting this song?
         </p>
-        <div className="mt-[14px] flex gap-[8px]">
-          {REASONS.map((item) => (
+        <div className="mt-[14px] flex flex-wrap gap-[8px]">
+          {REPORT_CATEGORIES.map((item) => (
             <button
-              key={item}
+              key={item.value}
               type="button"
-              onClick={() => setReason(item)}
+              onClick={() => setCategory(item.value)}
               className={`rounded-[8px] border px-[12px] py-[10px] text-left text-[11px] leading-[20px] ${
-                reason === item
+                category === item.value
                   ? 'border-app-accent bg-app-accent/10 text-app-accent'
                   : 'border-[#4f4f4f] bg-[#303030] text-[#e0e0e0]'
               }`}
             >
-              {item}
+              {item.label}
             </button>
           ))}
         </div>
@@ -62,8 +61,8 @@ export default function ReportSongModal({ onClose, onSubmit }) {
           </button>
           <button
             type="button"
-            disabled={!reason}
-            onClick={() => onSubmit({ reason, details })}
+            disabled={!category}
+            onClick={() => onSubmit({ category, details })}
             className="rounded-[8px] bg-[#1cb854] px-[18px] py-[11px] text-[12px] font-semibold leading-[20px] text-[#0a140d] disabled:cursor-not-allowed disabled:opacity-40"
           >
             Submit report

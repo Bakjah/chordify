@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import SearchField from '../search/SearchField.jsx'
 import { ROUTES } from '../../constants/routes.js'
+import { useNotifications } from '../../context/NotificationContext.jsx'
 import { useAuth } from '../../hooks/useAuth.js'
+import NotificationBell from './NotificationBell.jsx'
 
 const DETAIL_TRAIL = 'DISCOVER  /  SONG LIBRARY  /  CHORD STUDIO'
 const PUBLIC_TRAIL = 'DISCOVER  /  CHORDIFY'
@@ -19,21 +22,27 @@ const SPACE_PATHS = [
   ROUTES.VERIFICATION,
 ]
 
+const MENU_ITEM =
+  'flex w-full items-center gap-[8px] rounded-[8px] px-[10px] py-[9px] text-left text-[12px] font-semibold leading-[18px] text-app-text hover:bg-app-elevated'
+
 export default function TopBar() {
   const { user, isAuthenticated, logout } = useAuth()
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const navigate = useNavigate()
+  const { unread } = useNotifications()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [keyword, setKeyword] = useState('')
   const menuRef = useRef(null)
   const initial = user?.username?.charAt(0).toUpperCase() || 'G'
 
   const inSpace = SPACE_PATHS.includes(pathname) || /^\/songs\/[^/]+\/edit$/.test(pathname)
   const isDetail = pathname.startsWith('/songs/') && !pathname.startsWith('/songs/new')
+  const onChordPage = pathname === ROUTES.CHORD_DICTIONARY
 
   const trail = inSpace ? SPACE_TRAIL : isDetail ? DETAIL_TRAIL : PUBLIC_TRAIL
-  const placeholder = inSpace
-    ? 'Search songs or artists'
-    : 'Search songs, artists, chords...'
+  const placeholder = onChordPage
+    ? 'Search a chord (e.g. Cmaj7, F#m, B7)'
+    : 'Search songs or artists'
 
   // Menu akun menutup sendiri saat pindah halaman atau klik di luar.
   useEffect(() => {
@@ -49,6 +58,24 @@ export default function TopBar() {
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [menuOpen])
 
+  const go = (path) => {
+    setMenuOpen(false)
+    navigate(path)
+  }
+
+  // Kolom search di top bar mengikuti kata kunci yang sedang dipakai di Song
+  // Library, jadi keduanya tidak pernah menampilkan keadaan berbeda.
+  useEffect(() => {
+    setKeyword(new URLSearchParams(search).get('q') || '')
+  }, [search])
+
+  const submitSearch = () => {
+    const q = keyword.trim()
+    // Di kamus chord, pencarian diarahkan ke chord; di halaman lain ke lagu.
+    const base = onChordPage ? ROUTES.CHORD_DICTIONARY : ROUTES.SONGS
+    navigate(q ? `${base}?q=${encodeURIComponent(q)}` : base)
+  }
+
   const handleLogout = async () => {
     setMenuOpen(false)
     await logout()
@@ -61,10 +88,20 @@ export default function TopBar() {
         {trail}
       </p>
 
-      <div className="absolute right-[240px] top-[18px] flex h-[42px] w-[350px] items-center rounded-full bg-app-card px-[20px]">
-        <span className="text-[13px] text-app-muted">⌕</span>
-        <span className="ml-[10px] text-[13px] text-app-muted">{placeholder}</span>
-      </div>
+      <SearchField
+        value={keyword}
+        onChange={setKeyword}
+        onSubmit={submitSearch}
+        placeholder={placeholder}
+        className="absolute right-[240px] top-[18px] h-[42px] w-[350px] rounded-full bg-app-card px-[20px]"
+        inputClassName="text-[13px]"
+      />
+
+      {isAuthenticated && (
+        <span className="absolute right-[200px] top-[18px]">
+          <NotificationBell />
+        </span>
+      )}
 
       {isAuthenticated ? (
         <div ref={menuRef} className="absolute right-[152px] top-[18px]">
@@ -92,8 +129,38 @@ export default function TopBar() {
               <button
                 type="button"
                 role="menuitem"
+                onClick={() => go(ROUTES.NOTIFICATIONS)}
+                className={`mt-[4px] ${MENU_ITEM}`}
+              >
+                Notifications
+                {unread > 0 && (
+                  <span className="ml-auto rounded-full bg-[#ef4444] px-[6px] text-[10px] leading-[16px] text-white">
+                    {unread}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => go(ROUTES.VERIFICATION)}
+                className={MENU_ITEM}
+              >
+                Verification Request
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => go(ROUTES.PROFILE(user.username))}
+                className={MENU_ITEM}
+              >
+                My Profile
+              </button>
+              <div className="my-[4px] h-px w-full bg-app-border" />
+              <button
+                type="button"
+                role="menuitem"
                 onClick={handleLogout}
-                className="mt-[4px] w-full rounded-[8px] px-[10px] py-[9px] text-left text-[12px] font-semibold leading-[18px] text-app-text hover:bg-app-elevated"
+                className={MENU_ITEM}
               >
                 Log out
               </button>

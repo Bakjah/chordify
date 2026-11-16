@@ -1,5 +1,9 @@
-import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { ROUTES } from '../../constants/routes.js'
+import { getErrorMessage } from '../../services/api.js'
+import { songService } from '../../services/songService.js'
+import { formatLyrics, parseLyrics } from '../../utils/lyricsParser.js'
 
 const CHORD_CHIPS = ['B', 'F#', 'G#m', 'E']
 
@@ -11,7 +15,59 @@ const FIELD =
 // form yang mengikuti desain frame tersebut, digeser agar sinkron dengan sidebar.
 export default function EditSongPage() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [chords, setChords] = useState(CHORD_CHIPS)
+  const [song, setSong] = useState(null)
+  const [form, setForm] = useState({ title: '', artist: '', key: '', capo: 0, lyrics: '' })
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    let aktif = true
+    songService
+      .detail(id)
+      .then((data) => {
+        if (!aktif) return
+        setSong(data)
+        setForm({
+          title: data.title || '',
+          artist: data.artist || '',
+          key: data.key || '',
+          capo: data.capo || 0,
+          lyrics: formatLyrics(data.lyrics),
+        })
+      })
+      .catch((err) => {
+        if (aktif) setMessage(getErrorMessage(err, 'Lagu tidak ditemukan.'))
+      })
+    return () => {
+      aktif = false
+    }
+  }, [id])
+
+  const update = (field) => (event) =>
+    setForm((prev) => ({ ...prev, [field]: event.target.value }))
+
+  const save = async () => {
+    setSaving(true)
+    setMessage('')
+    try {
+      await songService.update(id, {
+        title: form.title,
+        artist: form.artist,
+        genre: song?.genre || '',
+        key: form.key,
+        difficulty: song?.difficulty || '',
+        artwork: song?.artwork || '#315a52',
+        capo: Number(form.capo) || 0,
+        lyrics: parseLyrics(form.lyrics),
+      })
+      navigate(ROUTES.CONTRIBUTIONS)
+    } catch (err) {
+      setMessage(getErrorMessage(err, 'Perubahan tidak dapat disimpan.'))
+      setSaving(false)
+    }
+  }
 
   return (
     <div className="relative h-[964px]">
@@ -38,10 +94,18 @@ export default function EditSongPage() {
       </button>
       <button
         type="button"
-        className="absolute right-[0px] top-[55px] h-[42px] w-[92px] rounded-[9px] bg-app-accent text-[13px] font-medium leading-[20px] text-app-bg"
+        onClick={save}
+        disabled={saving}
+        className="absolute right-[0px] top-[55px] h-[42px] w-[92px] rounded-[9px] bg-app-accent text-[13px] font-medium leading-[20px] text-app-bg disabled:opacity-60"
       >
-        Save changes
+        {saving ? 'Saving…' : 'Save changes'}
       </button>
+
+      {message && (
+        <p className="absolute right-[0px] top-[100px] text-[11px] leading-[20px] text-app-muted">
+          {message}
+        </p>
+      )}
 
       {/* Song details */}
       <section className="absolute left-[38px] top-[148px] h-[286px] w-[724px] rounded-[14px] bg-app-card">
@@ -55,27 +119,28 @@ export default function EditSongPage() {
         <label className="absolute left-[24px] top-[80px] text-[12px] leading-[20px] text-app-text" htmlFor="edit-title">
           Song title
         </label>
-        <input id="edit-title" className={`${FIELD} left-[24px] top-[104px] w-[330px]`} defaultValue="Yellow" />
+        <input id="edit-title" className={`${FIELD} left-[24px] top-[104px] w-[330px]`} value={form.title} onChange={update('title')} />
 
         <label className="absolute left-[378px] top-[80px] text-[12px] leading-[20px] text-app-text" htmlFor="edit-artist">
           Artist / band
         </label>
-        <input id="edit-artist" className={`${FIELD} left-[378px] top-[104px] w-[322px]`} defaultValue="Coldplay" />
+        <input id="edit-artist" className={`${FIELD} left-[378px] top-[104px] w-[322px]`} value={form.artist} onChange={update('artist')} />
 
         <label className="absolute left-[24px] top-[182px] text-[12px] leading-[20px] text-app-text" htmlFor="edit-key">
           Original key
         </label>
-        <select id="edit-key" className={`${FIELD} left-[24px] top-[206px] w-[190px] appearance-none`} defaultValue="B major">
-          <option>B major</option>
-          <option>C major</option>
-          <option>G major</option>
+        <select id="edit-key" className={`${FIELD} left-[24px] top-[206px] w-[190px] appearance-none`} value={form.key} onChange={update('key')}>
+          <option value="">Choose a key</option>
+          {(song ? [song.key] : []).filter(Boolean).map((key) => (
+            <option key={key} value={key}>{key}</option>
+          ))}
         </select>
         <span className="absolute left-[184px] top-[218px] text-[17px] text-app-muted">⌄</span>
 
         <label className="absolute left-[234px] top-[182px] text-[12px] leading-[20px] text-app-text" htmlFor="edit-capo">
           Capo
         </label>
-        <input id="edit-capo" className={`${FIELD} left-[234px] top-[206px] w-[130px]`} defaultValue="4" />
+        <input id="edit-capo" className={`${FIELD} left-[234px] top-[206px] w-[130px]`} value={form.capo} onChange={update('capo')} />
 
         <label className="absolute left-[384px] top-[182px] text-[12px] leading-[20px] text-app-text" htmlFor="edit-tuning">
           Tuning
@@ -173,13 +238,13 @@ export default function EditSongPage() {
         </div>
 
         <div className="absolute left-[24px] top-[124px] h-[132px] w-[676px] rounded-[8px] bg-[#1b1b1b] px-[30px] py-[18px]">
-          <p className="text-[16px] leading-[24px] text-app-accent">B</p>
-          <p className="text-[14px] leading-[25px] text-app-text">
-            Look at the stars, look how they shine for you
-          </p>
-          <p className="text-[16px] leading-[24px] text-app-accent">F#</p>
-          <p className="text-[16px] leading-[24px] text-app-accent">G#m</p>
-          <p className="text-[14px] leading-[25px] text-app-text">And everything you do</p>
+          <textarea
+            id="edit-lyrics"
+            className="h-full w-full resize-none bg-transparent text-[14px] leading-[24px] text-app-text outline-none placeholder:text-app-muted"
+            value={form.lyrics}
+            onChange={update('lyrics')}
+            placeholder={'[G]\nBaris lirik pertama'}
+          />
         </div>
       </section>
 
@@ -196,19 +261,19 @@ export default function EditSongPage() {
         </div>
 
         <p className="absolute left-[24px] top-[220px] text-[20px] font-semibold leading-[29px] text-app-text">
-          Yellow
+          {form.title || '—'}
         </p>
         <p className="absolute left-[24px] top-[249px] text-[12px] leading-[20px] text-app-muted">
-          Coldplay
+          {form.artist || '—'}
         </p>
 
         <div className="absolute left-[24px] top-[285px] h-[30px] w-[112px] rounded-[15px] bg-[#1b1b1b]">
           <p className="ml-[12px] font-mono text-[12px] leading-[20px] text-app-muted">
-            KEY&nbsp; B MAJOR
+            KEY&nbsp; {(form.key || '—').toUpperCase()}
           </p>
         </div>
         <div className="absolute left-[148px] top-[285px] h-[30px] w-[88px] rounded-[15px] bg-[#1b1b1b]">
-          <p className="ml-[12px] font-mono text-[12px] leading-[20px] text-app-muted">CAPO&nbsp; 4</p>
+          <p className="ml-[12px] font-mono text-[12px] leading-[20px] text-app-muted">CAPO&nbsp; {form.capo}</p>
         </div>
 
         <div className="absolute left-[24px] top-[332px] h-px w-[322px] bg-app-border" />

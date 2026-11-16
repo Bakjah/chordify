@@ -1,8 +1,17 @@
 package com.chordify.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-/** TODO: lengkapi kolom & relasi sesuai ERD di makalah. */
+/**
+ * Genre lagu, misalnya Pop atau Rock.
+ *
+ * <p>Satu genre punya banyak lagu (relasi satu ke banyak dari {@link Song}).
+ */
 @Entity
 @Table(name = "genres")
 public class Genre {
@@ -11,5 +20,27 @@ public class Genre {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    public Long getId() { return id; }
+    @Column(nullable = false, unique = true, length = 50)
+    private String name;
+
+    public Genre() {
+        // dipakai Hibernate saat memuat baris dari database
+    }
+
+    /** Konstruktor domain: nama genre minimal wajib diisi. */
+    public Genre(String name) {
+        this.name = name;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }

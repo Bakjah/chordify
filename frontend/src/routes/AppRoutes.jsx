@@ -25,6 +25,8 @@ import NotificationsPage from '../pages/member/NotificationsPage.jsx'
 
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage.jsx'
 import AdminManageSongsPage from '../pages/admin/AdminManageSongsPage.jsx'
+import AdminManageArtistsPage from '../pages/admin/AdminManageArtistsPage.jsx'
+import AdminManageGenresPage from '../pages/admin/AdminManageGenresPage.jsx'
 import AdminManageUsersPage from '../pages/admin/AdminManageUsersPage.jsx'
 import AdminManageReportsPage from '../pages/admin/AdminManageReportsPage.jsx'
 import AdminManageVerificationPage from '../pages/admin/AdminManageVerificationPage.jsx'
@@ -67,6 +69,8 @@ export default function AppRoutes() {
         <Route element={<AdminLayout />}>
           <Route path={ROUTES.ADMIN} element={<AdminDashboardPage />} />
           <Route path={ROUTES.ADMIN_SONGS} element={<AdminManageSongsPage />} />
+          <Route path={ROUTES.ADMIN_ARTISTS} element={<AdminManageArtistsPage />} />
+          <Route path={ROUTES.ADMIN_GENRES} element={<AdminManageGenresPage />} />
           <Route path={ROUTES.ADMIN_USERS} element={<AdminManageUsersPage />} />
           <Route path={ROUTES.ADMIN_REPORTS} element={<AdminManageReportsPage />} />
           <Route path={ROUTES.ADMIN_VERIFICATION} element={<AdminManageVerificationPage />} />
