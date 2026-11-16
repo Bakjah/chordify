@@ -9,6 +9,7 @@ import { libraryService } from '../../services/libraryService.js'
 import { reportService } from '../../services/reportService.js'
 import { songService } from '../../services/songService.js'
 import { applyCapo, keyLabel, transposeChord } from '../../utils/chordTransposer.js'
+import { splitInlineChords } from '../../utils/lyricsParser.js'
 
 const CAPO_OPTIONS = ['No Capo', 'Capo 1', 'Capo 2', 'Capo 3', 'Capo 4', 'Capo 5']
 
@@ -152,10 +153,19 @@ export default function SongDetailPage() {
 
   const chords = useMemo(
     () =>
-      (song?.lyrics || []).map(({ chord, line }) => ({
-        chord: transposeChord(applyCapo(chord, capo), semitones),
-        line,
-      })),
+      (song?.lyrics || []).map(({ chord, line }) => {
+        // Kurung siku dari data lama dibuang supaya chord tampil polos.
+        const label = String(chord || '').replace(/^\[/, '').replace(/\]$/, '').trim()
+        return {
+          chord: transposeChord(applyCapo(label, capo), semitones),
+          // Chord yang ditulis di dalam baris lirik tetap di tempatnya.
+          segments: splitInlineChords(line).map((segment) =>
+            segment.type === 'chord'
+              ? { ...segment, value: transposeChord(applyCapo(segment.value, capo), semitones) }
+              : segment
+          ),
+        }
+      }),
     [song?.lyrics, capo, semitones]
   )
 
@@ -384,14 +394,27 @@ export default function SongDetailPage() {
             <div className="mt-[25px] flex flex-col gap-[9px]">
               {chords.map((row, index) => (
                 <div key={`${row.chord}-${index}`}>
-                  <p
-                    className="font-mono font-medium text-app-accent"
-                    style={{ fontSize: `${fontSize}px`, lineHeight: '23px' }}
-                  >
-                    {row.chord}
-                  </p>
+                  {row.chord && (
+                    <p
+                      className="font-mono font-medium text-app-accent"
+                      style={{ fontSize: `${fontSize}px`, lineHeight: '23px' }}
+                    >
+                      {row.chord}
+                    </p>
+                  )}
                   <p className="text-app-text" style={{ fontSize: `${fontSize}px`, lineHeight: '23px' }}>
-                    {row.line}
+                    {row.segments.map((segment, segmentIndex) =>
+                      segment.type === 'chord' ? (
+                        <span
+                          key={segmentIndex}
+                          className="font-mono font-medium text-app-accent"
+                        >
+                          {segment.value}
+                        </span>
+                      ) : (
+                        <span key={segmentIndex}>{segment.value}</span>
+                      )
+                    )}
                   </p>
                 </div>
               ))}

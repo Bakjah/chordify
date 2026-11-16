@@ -147,7 +147,7 @@ export default function AddSongPage() {
               className="absolute left-[30px] top-[510px] h-[160px] w-[750px] resize-none rounded-[8px] bg-app-elevated p-[18px] text-[12px] leading-[20px] text-app-text outline-none placeholder:text-app-muted"
               value={form.lyrics}
               onChange={update('lyrics')}
-              placeholder={'Place chord names on their own lines above the lyrics.\n\n[G]  Add your chord progression here...\n     Write the song lyrics here...'}
+              placeholder={'Place chord names on their own lines above the lyrics,\nor inline in brackets, e.g. "Dan terjadi lagi [G]".\n\n[G]  Add your chord progression here...\n     Write the song lyrics here...'}
             />
 
             <button

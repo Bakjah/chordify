@@ -61,7 +61,7 @@ export default function AdminLayout() {
 
         <nav className="mt-[25px] flex flex-col">
           {ADMIN_NAV.map((item) => (
-            <NavLink key={item.label} to={item.to} className="relative block h-[43px]">
+            <NavLink key={item.label} to={item.to} end className="relative block h-[43px]">
               {({ isActive }) => (
                 <span
                   className={`absolute left-[16px] right-[16px] top-0 flex h-[38px] items-center rounded-[8px] pl-[12px] text-[13px] font-medium leading-[20px] ${
