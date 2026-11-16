@@ -18,6 +18,18 @@ export const songService = {
   update: (id, payload) => api.put(`/songs/${id}`, payload).then((r) => r.data),
   // Menghapus lagu milik sendiri.
   remove: (id) => api.delete(`/songs/${id}`).then((r) => r.data),
+  // Mengunggah berkas audio playback (mp3, mp4a, dan sejenisnya).
+  // Header Content-Type sengaja dikosongkan supaya browser yang menentukan
+  // multipart boundary-nya sendiri.
+  uploadMedia: (id, file) => {
+    const data = new FormData()
+    data.append('file', file)
+    return api
+      .post(`/songs/${id}/media`, data, { headers: { 'Content-Type': undefined } })
+      .then((r) => r.data)
+  },
+  // Menghapus berkas audio playback.
+  removeMedia: (id) => api.delete(`/songs/${id}/media`).then(() => undefined),
 }
 
 export const artistService = {

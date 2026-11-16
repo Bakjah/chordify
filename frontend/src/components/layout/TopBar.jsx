@@ -37,12 +37,9 @@ export default function TopBar() {
 
   const inSpace = SPACE_PATHS.includes(pathname) || /^\/songs\/[^/]+\/edit$/.test(pathname)
   const isDetail = pathname.startsWith('/songs/') && !pathname.startsWith('/songs/new')
-  const onChordPage = pathname === ROUTES.CHORD_DICTIONARY
 
   const trail = inSpace ? SPACE_TRAIL : isDetail ? DETAIL_TRAIL : PUBLIC_TRAIL
-  const placeholder = onChordPage
-    ? 'Search a chord (e.g. Cmaj7, F#m, B7)'
-    : 'Search songs or artists'
+  const placeholder = 'Search songs or artists'
 
   // Menu akun menutup sendiri saat pindah halaman atau klik di luar.
   useEffect(() => {
@@ -71,9 +68,7 @@ export default function TopBar() {
 
   const submitSearch = () => {
     const q = keyword.trim()
-    // Di kamus chord, pencarian diarahkan ke chord; di halaman lain ke lagu.
-    const base = onChordPage ? ROUTES.CHORD_DICTIONARY : ROUTES.SONGS
-    navigate(q ? `${base}?q=${encodeURIComponent(q)}` : base)
+    navigate(q ? `${ROUTES.SONGS}?q=${encodeURIComponent(q)}` : ROUTES.SONGS)
   }
 
   const handleLogout = async () => {

@@ -12,7 +12,6 @@ import RegisterPage from '../pages/public/RegisterPage.jsx'
 import HomePage from '../pages/public/HomePage.jsx'
 import SongLibraryPage from '../pages/public/SongLibraryPage.jsx'
 import SongDetailPage from '../pages/public/SongDetailPage.jsx'
-import ChordDictionaryPage from '../pages/public/ChordDictionaryPage.jsx'
 import NotFoundPage from '../pages/public/NotFoundPage.jsx'
 
 import PersonalLibraryPage from '../pages/member/PersonalLibraryPage.jsx'
@@ -46,7 +45,6 @@ export default function AppRoutes() {
       <Route element={<MainLayout />}>
         <Route path={ROUTES.HOME} element={<HomePage />} />
         <Route path={ROUTES.SONGS} element={<SongLibraryPage />} />
-        <Route path={ROUTES.CHORD_DICTIONARY} element={<ChordDictionaryPage />} />
         <Route path={ROUTES.SONG_DETAIL()} element={<SongDetailPage />} />
         <Route path={ROUTES.PROFILE()} element={<PublicContributorProfilePage />} />
 

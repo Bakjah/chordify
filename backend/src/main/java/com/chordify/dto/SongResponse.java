@@ -25,6 +25,8 @@ public record SongResponse(
         boolean verified,
         List<LyricLine> lyrics,
         int capo,
+        String audio,
+        String audioName,
         String status,
         LocalDateTime createdAt) {
 
@@ -50,6 +52,8 @@ public record SongResponse(
                 contributor != null && contributor.isVerified(),
                 lyrics,
                 song.getCapo(),
+                song.getAudioPath(),
+                song.getAudioName(),
                 song.getStatus().name(),
                 song.getCreatedAt());
     }

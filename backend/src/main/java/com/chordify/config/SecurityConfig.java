@@ -45,6 +45,8 @@ public class SecurityConfig {
                 // Guest boleh membaca library lagu, artis, genre, dan kamus chord
                 .requestMatchers(HttpMethod.GET, "/api/songs/**", "/api/artists/**",
                         "/api/genres/**", "/api/chords/**", "/api/users/*/profile").permitAll()
+                // Berkas audio playback juga boleh dibaca tamu
+                .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

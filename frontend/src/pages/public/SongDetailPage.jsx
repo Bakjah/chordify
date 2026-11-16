@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import PageShell from '../../components/layout/PageShell.jsx'
+import PlaybackPanel from '../../components/song/PlaybackPanel.jsx'
 import ReportSongModal from '../../components/song/ReportSongModal.jsx'
 import { ROUTES } from '../../constants/routes.js'
 import { useAuth } from '../../hooks/useAuth.js'
@@ -402,7 +403,10 @@ export default function SongDetailPage() {
                       {row.chord}
                     </p>
                   )}
-                  <p className="text-app-text" style={{ fontSize: `${fontSize}px`, lineHeight: '23px' }}>
+                  <p
+                    className="whitespace-pre-wrap text-app-text"
+                    style={{ fontSize: `${fontSize}px`, lineHeight: '23px' }}
+                  >
                     {row.segments.map((segment, segmentIndex) =>
                       segment.type === 'chord' ? (
                         <span
@@ -423,25 +427,7 @@ export default function SongDetailPage() {
 
           <div className="flex w-[340px] shrink-0 flex-col">
             {/* Pemutar */}
-            <div className="h-[130px] rounded-[14px] bg-app-card px-[29px] pt-[24px]">
-              <p className="text-[8px] font-bold leading-[14px] text-[#9e9e9e]">PLAYBACK</p>
-              <div className="mt-[4px] flex items-center justify-between">
-                <span className="text-[9px] font-semibold leading-[14px] text-[#f5f5f5]">01:24</span>
-                <span className="text-[9px] font-semibold leading-[14px] text-[#9e9e9e]">04:26</span>
-              </div>
-              <div className="relative mt-[4px] h-[3px] w-full rounded-[2px] bg-[#303030]">
-                <div className="h-[3px] w-[85px] rounded-[2px] bg-[#1cb954]" />
-              </div>
-              <div className="mt-[13px] flex items-center justify-between px-[7px]">
-                <span className="text-[12px] font-bold leading-[16px] text-[#f5f5f5]">|◀</span>
-                <span className="text-[12px] font-bold leading-[16px] text-[#9e9e9e]">1×</span>
-                <span className="flex size-[40px] items-center justify-center rounded-full bg-[#1cb954] text-[18px] font-bold leading-none text-white">
-                  ▶
-                </span>
-                <span className="text-[12px] font-bold leading-[16px] text-[#f5f5f5]">▶|</span>
-                <span className="text-[17px] font-bold leading-[16px] text-[#9e9e9e]">↻</span>
-              </div>
-            </div>
+            <PlaybackPanel song={song} />
 
             {/* Kontributor */}
             <div className="mt-[18px] h-[245px] rounded-[14px] bg-app-card px-[25px] pt-[25px]">

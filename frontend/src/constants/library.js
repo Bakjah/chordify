@@ -16,7 +16,6 @@ export const VERIFICATION_CATEGORIES = [
 export const MEMBER_NAV = [
   { label: 'Home', to: ROUTES.HOME },
   { label: 'Song Library', to: ROUTES.SONGS },
-  { label: 'Chord Dictionary', to: ROUTES.CHORD_DICTIONARY },
   { label: 'My Library', to: ROUTES.LIBRARY },
   { label: 'My Favorites', to: ROUTES.FAVORITES },
   { label: 'My Playlists', to: ROUTES.PLAYLISTS },

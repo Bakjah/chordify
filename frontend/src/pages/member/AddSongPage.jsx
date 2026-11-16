@@ -11,6 +11,10 @@ const GENRE_OPTIONS = ['Pop', 'Pop Rock', 'Rock', 'Indie', 'Alternative', 'Acous
 const DIFFICULTY_OPTIONS = ['Beginner', 'Easy', 'Intermediate', 'Advanced']
 const KEY_OPTIONS = CHORD_KEYS.flatMap((note) => [`${note} Major`, `${note} Minor`])
 
+// Berkas audio playback yang boleh diunggah, sama dengan yang diterima backend.
+const AUDIO_ACCEPT = '.mp3,.mp4,.m4a,.mp4a,.aac,.wav,.ogg,.flac'
+const AUDIO_MAX_BYTES = 25 * 1024 * 1024
+
 const FIELD_CLASS =
   'absolute left-[30px] w-[750px] h-[42px] rounded-[8px] bg-app-elevated pl-[16px] text-[11px] leading-[20px] text-app-text outline-none placeholder:text-app-muted'
 const LABEL_CLASS =
@@ -28,16 +32,32 @@ export default function AddSongPage() {
   })
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const [audio, setAudio] = useState(null)
 
   const update = (field) => (event) =>
     setForm((prev) => ({ ...prev, [field]: event.target.value }))
+
+  const pickAudio = (event) => {
+    const file = event.target.files?.[0]
+    setMessage('')
+    if (!file) {
+      setAudio(null)
+      return
+    }
+    if (file.size > AUDIO_MAX_BYTES) {
+      setAudio(null)
+      setMessage('Ukuran audio maksimal 25 MB.')
+      return
+    }
+    setAudio(file)
+  }
 
   const submit = async (event) => {
     event.preventDefault()
     setSaving(true)
     setMessage('')
     try {
-      await songService.create({
+      const created = await songService.create({
         title: form.title,
         artist: form.artist,
         genre: form.genre,
@@ -46,6 +66,10 @@ export default function AddSongPage() {
         artwork: '#315a52',
         lyrics: parseLyrics(form.lyrics),
       })
+      // Audio diunggah setelah lagu dibuat, karena endpointnya butuh id lagu.
+      if (audio) {
+        await songService.uploadMedia(created.id, audio)
+      }
       navigate(ROUTES.CONTRIBUTIONS)
     } catch (err) {
       setMessage(getErrorMessage(err, 'Lagu tidak dapat dikirim.'))
@@ -62,7 +86,7 @@ export default function AddSongPage() {
         </p>
 
         <div className="mt-[25px] flex gap-[30px]">
-          <form className="relative h-[740px] w-[820px] rounded-[14px] bg-app-card" onSubmit={submit}>
+          <form className="relative h-[830px] w-[820px] rounded-[14px] bg-app-card" onSubmit={submit}>
             <p className="absolute left-[30px] top-[25px] font-mono text-[11px] font-bold leading-[20px] text-app-accent">
               SONG DETAILS
             </p>
@@ -150,22 +174,38 @@ export default function AddSongPage() {
               placeholder={'Place chord names on their own lines above the lyrics,\nor inline in brackets, e.g. "Dan terjadi lagi [G]".\n\n[G]  Add your chord progression here...\n     Write the song lyrics here...'}
             />
 
+            <label className={`${LABEL_CLASS} top-[683px]`} htmlFor="song-audio">
+              Audio playback (optional)
+            </label>
+            <input
+              id="song-audio"
+              type="file"
+              accept={AUDIO_ACCEPT}
+              onChange={pickAudio}
+              className="absolute left-[30px] top-[707px] w-[420px] text-[11px] text-app-muted file:mr-[12px] file:rounded-[8px] file:bg-app-elevated file:px-[14px] file:py-[10px] file:text-[11px] file:text-app-text"
+            />
+            {audio && (
+              <p className="absolute left-[470px] top-[712px] text-[11px] leading-[20px] text-app-muted">
+                {audio.name}
+              </p>
+            )}
+
             <button
               type="submit"
               disabled={saving}
-              className="absolute left-[30px] top-[690px] h-[42px] w-[170px] rounded-[9px] bg-app-accent text-[12px] font-bold leading-[20px] text-app-bg disabled:opacity-60"
+              className="absolute left-[30px] top-[770px] h-[42px] w-[170px] rounded-[9px] bg-app-accent text-[12px] font-bold leading-[20px] text-app-bg disabled:opacity-60"
             >
               {saving ? 'Publishing…' : 'Publish Song'}
             </button>
             <button
               type="button"
               onClick={() => navigate(ROUTES.CONTRIBUTIONS)}
-              className="absolute left-[215px] top-[690px] h-[42px] w-[110px] rounded-[9px] bg-app-elevated text-[12px] font-medium leading-[20px] text-app-text"
+              className="absolute left-[215px] top-[770px] h-[42px] w-[110px] rounded-[9px] bg-app-elevated text-[12px] font-medium leading-[20px] text-app-text"
             >
               Cancel
             </button>
             {message && (
-              <p className="absolute left-[340px] top-[700px] text-[11px] leading-[20px] text-app-muted">
+              <p className="absolute left-[340px] top-[780px] text-[11px] leading-[20px] text-app-muted">
                 {message}
               </p>
             )}

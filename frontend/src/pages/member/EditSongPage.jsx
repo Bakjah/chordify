@@ -7,6 +7,10 @@ import { formatLyrics, parseLyrics } from '../../utils/lyricsParser.js'
 
 const CHORD_CHIPS = ['B', 'F#', 'G#m', 'E']
 
+// Berkas audio playback yang boleh diunggah, sama dengan yang diterima backend.
+const AUDIO_ACCEPT = '.mp3,.mp4,.m4a,.mp4a,.aac,.wav,.ogg,.flac'
+const AUDIO_MAX_BYTES = 25 * 1024 * 1024
+
 const FIELD =
   'absolute h-[48px] rounded-[8px] border border-white/5 bg-[#1f1f1f] pl-[14px] text-[14px] leading-[20px] text-app-text outline-none focus:border-app-accent'
 
@@ -21,6 +25,7 @@ export default function EditSongPage() {
   const [form, setForm] = useState({ title: '', artist: '', key: '', capo: 0, lyrics: '' })
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const [audioFile, setAudioFile] = useState(null)
 
   useEffect(() => {
     let aktif = true
@@ -48,6 +53,31 @@ export default function EditSongPage() {
   const update = (field) => (event) =>
     setForm((prev) => ({ ...prev, [field]: event.target.value }))
 
+  const pickAudio = (event) => {
+    const file = event.target.files?.[0]
+    setMessage('')
+    if (!file) {
+      setAudioFile(null)
+      return
+    }
+    if (file.size > AUDIO_MAX_BYTES) {
+      setAudioFile(null)
+      setMessage('Ukuran audio maksimal 25 MB.')
+      return
+    }
+    setAudioFile(file)
+  }
+
+  const removeAudio = async () => {
+    try {
+      await songService.removeMedia(id)
+      setSong((prev) => ({ ...prev, audio: null, audioName: null }))
+      setMessage('Audio playback dihapus.')
+    } catch (err) {
+      setMessage(getErrorMessage(err, 'Audio tidak dapat dihapus.'))
+    }
+  }
+
   const save = async () => {
     setSaving(true)
     setMessage('')
@@ -62,6 +92,11 @@ export default function EditSongPage() {
         capo: Number(form.capo) || 0,
         lyrics: parseLyrics(form.lyrics),
       })
+      // Audio baru dipasang setelah data lagu tersimpan.
+      if (audioFile) {
+        const stored = await songService.uploadMedia(id, audioFile)
+        setSong((prev) => ({ ...prev, audio: stored.url, audioName: stored.name }))
+      }
       navigate(ROUTES.CONTRIBUTIONS)
     } catch (err) {
       setMessage(getErrorMessage(err, 'Perubahan tidak dapat disimpan.'))
@@ -70,7 +105,7 @@ export default function EditSongPage() {
   }
 
   return (
-    <div className="relative h-[964px]">
+    <div className="relative h-[1132px]">
       <p className="absolute left-[38px] top-[36px] font-mono text-[10px] font-medium leading-[20px] text-app-muted">
         CONTRIBUTOR WORKSPACE
       </p>
@@ -286,7 +321,44 @@ export default function EditSongPage() {
         </p>
       </aside>
 
-      <p className="absolute left-[38px] top-[932px] text-[11px] leading-[20px] text-app-muted">
+      {/* Audio playback */}
+      <section className="absolute left-[38px] top-[932px] h-[150px] w-[724px] rounded-[14px] bg-app-card">
+        <h2 className="absolute left-[24px] top-[22px] text-[16px] font-semibold leading-[23px] text-app-text">
+          Audio playback
+        </h2>
+        <p className="absolute left-[24px] top-[47px] text-[12px] leading-[20px] text-app-muted">
+          Upload mp3 atau mp4a supaya lagu bisa diputar sambil menunggu chord.
+        </p>
+
+        <div className="absolute left-[24px] top-[80px] flex items-center gap-[14px]">
+          <input
+            id="edit-audio"
+            type="file"
+            accept={AUDIO_ACCEPT}
+            onChange={pickAudio}
+            className="text-[11px] text-app-muted file:mr-[12px] file:rounded-[8px] file:bg-[#1f1f1f] file:px-[14px] file:py-[10px] file:text-[11px] file:text-app-text"
+          />
+          {song?.audio && (
+            <button
+              type="button"
+              onClick={removeAudio}
+              className="h-[36px] rounded-[8px] bg-[#1f1f1f] px-[16px] text-[12px] font-medium leading-[20px] text-app-text hover:text-[#ef4444]"
+            >
+              Remove audio
+            </button>
+          )}
+        </div>
+
+        <p className="absolute left-[24px] top-[122px] text-[11px] leading-[20px] text-app-muted">
+          {audioFile
+            ? `Diganti dengan: ${audioFile.name}`
+            : song?.audio
+              ? `Audio sekarang: ${song.audioName || song.audio}`
+              : 'Belum ada audio. Maksimal 25 MB.'}
+        </p>
+      </section>
+
+      <p className="absolute left-[38px] top-[1100px] text-[11px] leading-[20px] text-app-muted">
         All changes are saved locally as a draft until submitted.
       </p>
       <p className="sr-only">Editing song {id}</p>

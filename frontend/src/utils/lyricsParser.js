@@ -60,13 +60,15 @@ export function parseLyrics(text) {
   let pendingChord = ''
 
   for (const raw of String(text || '').split('\n')) {
-    const line = raw.trim()
-    if (!line) continue
-    if (isChordLine(line)) {
-      pendingChord = line.replace(/^\[/, '').replace(/\]$/, '').trim()
+    // Baris kosong diabaikan, tapi baris lyric yang ada spasi di depan
+    // disimpan apa adanya supaya posisi chord di dalam baris tetap utuh.
+    const trimmed = raw.trim()
+    if (!trimmed) continue
+    if (isChordLine(trimmed)) {
+      pendingChord = trimmed.replace(/^\[/, '').replace(/\]$/, '').trim()
       continue
     }
-    rows.push({ chord: pendingChord, line })
+    rows.push({ chord: pendingChord, line: raw })
     pendingChord = ''
   }
 

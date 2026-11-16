@@ -12,6 +12,11 @@ export default defineConfig({
         target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:8080',
         changeOrigin: true,
       },
+      // Berkas audio playback dilayani backend sebagai sumber statis.
+      '/uploads': {
+        target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:8080',
+        changeOrigin: true,
+      },
     },
   },
 })

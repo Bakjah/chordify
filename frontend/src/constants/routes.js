@@ -7,7 +7,6 @@ export const ROUTES = {
   HOME: '/home',
   SONGS: '/songs',
   SONG_DETAIL: (id = ':id') => `/songs/${id}`,
-  CHORD_DICTIONARY: '/chords',
 
   LIBRARY: '/library',
   FAVORITES: '/favorites',

@@ -64,6 +64,18 @@ public class Song implements Reportable {
     @Column(nullable = false)
     private int capo = 0;
 
+    /** Alamat berkas audio untuk playback, misalnya "/uploads/songs/ab12.mp3". */
+    @Column(name = "audio_path", length = 255)
+    private String audioPath;
+
+    /** Nama berkas audio asli dari pengguna. */
+    @Column(name = "audio_name", length = 200)
+    private String audioName;
+
+    /** Tipe MIME berkas audio, misalnya "audio/mpeg". */
+    @Column(name = "audio_type", length = 60)
+    private String audioType;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contributor_id")
     private User contributor;
@@ -183,6 +195,30 @@ public class Song implements Reportable {
 
     public void setCapo(int capo) {
         this.capo = capo;
+    }
+
+    public String getAudioPath() {
+        return audioPath;
+    }
+
+    public void setAudioPath(String audioPath) {
+        this.audioPath = audioPath;
+    }
+
+    public String getAudioName() {
+        return audioName;
+    }
+
+    public void setAudioName(String audioName) {
+        this.audioName = audioName;
+    }
+
+    public String getAudioType() {
+        return audioType;
+    }
+
+    public void setAudioType(String audioType) {
+        this.audioType = audioType;
     }
 
     public User getContributor() {

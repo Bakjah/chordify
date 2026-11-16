@@ -1,12 +1,15 @@
 package com.chordify.service;
 
 import com.chordify.chord.ChordProcessor;
+import com.chordify.contract.MediaStorage;
 import com.chordify.contract.Searchable;
 import com.chordify.dto.ArtistResponse;
 import com.chordify.dto.LyricLine;
+import com.chordify.dto.MediaResponse;
 import com.chordify.dto.PageResponse;
 import com.chordify.dto.SongRequest;
 import com.chordify.dto.SongResponse;
+import com.chordify.dto.StoredMedia;
 import com.chordify.exception.ApiException;
 import com.chordify.model.Artist;
 import com.chordify.model.Genre;
@@ -45,19 +48,22 @@ public class SongService implements Searchable<Song> {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final ChordProcessor chordProcessor;
+    private final MediaStorage mediaStorage;
 
     public SongService(SongRepository songRepository,
                        ArtistRepository artistRepository,
                        GenreRepository genreRepository,
                        UserRepository userRepository,
                        ObjectMapper objectMapper,
-                       ChordProcessor chordProcessor) {
+                       ChordProcessor chordProcessor,
+                       MediaStorage mediaStorage) {
         this.songRepository = songRepository;
         this.artistRepository = artistRepository;
         this.genreRepository = genreRepository;
         this.userRepository = userRepository;
         this.objectMapper = objectMapper;
         this.chordProcessor = chordProcessor;
+        this.mediaStorage = mediaStorage;
     }
 
     /**
@@ -164,6 +170,50 @@ public class SongService implements Searchable<Song> {
                 .map(line -> new LyricLine(chordProcessor.process(line.chord(), semitones), line.line()))
                 .toList();
         return SongResponse.from(song, lines);
+    }
+
+    /**
+     * Mengganti berkas audio playback milik sebuah lagu.
+     *
+     * <p>Berkas lama otomatis dihapus supaya folder storage tidak menumpuk
+     * berkas yang sudah tidak terpakai.
+     */
+    @Transactional
+    public MediaResponse attachMedia(Long songId,
+                                     String filename,
+                                     String contentType,
+                                     byte[] content,
+                                     Long userId) {
+        Song song = findSong(songId);
+        ensureCanModify(song, userId);
+
+        String previous = song.getAudioPath();
+        StoredMedia stored = mediaStorage.store("songs", filename, contentType, content);
+
+        song.setAudioPath(stored.url());
+        song.setAudioName(stored.name());
+        song.setAudioType(stored.type());
+        songRepository.save(song);
+
+        if (previous != null && !previous.equals(stored.url())) {
+            mediaStorage.delete(previous);
+        }
+        return MediaResponse.from(stored);
+    }
+
+    /** Menghapus berkas audio playback milik sebuah lagu. */
+    @Transactional
+    public void removeMedia(Long songId, Long userId) {
+        Song song = findSong(songId);
+        ensureCanModify(song, userId);
+
+        String previous = song.getAudioPath();
+        song.setAudioPath(null);
+        song.setAudioName(null);
+        song.setAudioType(null);
+        songRepository.save(song);
+
+        mediaStorage.delete(previous);
     }
 
     /** Daftar artis beserta jumlah lagunya. */
