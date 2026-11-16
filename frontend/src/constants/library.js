@@ -2,7 +2,7 @@
 
 import { ROUTES } from './routes.js'
 
-export const LIBRARY_TABS = ['Favorites', 'Playlists', 'Setlists', 'Recently Viewed']
+export const LIBRARY_TABS = ['Overview', 'Favorites', 'Playlists', 'Setlists', 'Recently Viewed']
 
 export const VERIFICATION_CATEGORIES = [
   'Verified Artist',

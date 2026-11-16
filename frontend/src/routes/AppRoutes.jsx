@@ -53,9 +53,9 @@ export default function AppRoutes() {
         {/* Wajib login (member & admin) */}
         <Route element={<ProtectedRoute />}>
           <Route path={ROUTES.LIBRARY} element={<PersonalLibraryPage />} />
-          <Route path={ROUTES.FAVORITES} element={<PersonalLibraryPage initialTab="Favorites" />} />
-          <Route path={ROUTES.PLAYLISTS} element={<PersonalLibraryPage initialTab="Playlists" />} />
-          <Route path={ROUTES.SETLISTS} element={<PersonalLibraryPage initialTab="Setlists" />} />
+          <Route path={ROUTES.FAVORITES} element={<PersonalLibraryPage />} />
+          <Route path={ROUTES.PLAYLISTS} element={<PersonalLibraryPage />} />
+          <Route path={ROUTES.SETLISTS} element={<PersonalLibraryPage />} />
           <Route path={ROUTES.CONTRIBUTIONS} element={<MyContributionsPage />} />
           <Route path={ROUTES.ADD_SONG} element={<AddSongPage />} />
           <Route path={ROUTES.EDIT_SONG()} element={<EditSongPage />} />

@@ -105,9 +105,12 @@ export default function MyContributionsPage() {
                 key={song.id}
                 className="relative h-[86px] w-[1110px] rounded-[10px] bg-app-card"
               >
-                <p className="absolute left-[22px] top-[17px] text-[15px] font-semibold leading-[22px] text-app-text">
+                <Link
+                  to={ROUTES.SONG_DETAIL(song.id)}
+                  className="absolute left-[22px] top-[17px] text-[15px] font-semibold leading-[22px] text-app-text hover:text-app-accent"
+                >
                   {song.title} — {song.artist}
-                </p>
+                </Link>
                 <p className="absolute left-[22px] top-[45px] text-[11px] leading-[20px] text-app-muted">
                   Added {formatDate(song.createdAt)}&nbsp; • &nbsp;Guitar chords
                 </p>
