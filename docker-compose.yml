@@ -1,0 +1,29 @@
+# MySQL + phpMyAdmin lokal untuk development:  docker compose up -d
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: chordify-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: chordify
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - chordify-mysql-data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: chordify-phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8081:80"
+
+volumes:
+  chordify-mysql-data:

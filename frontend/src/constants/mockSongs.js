@@ -1,0 +1,115 @@
+// Data contoh untuk wearer UI. Backend belum jadi, nanti diganti hasil /api/songs.
+export const SONGS = [
+  {
+    id: 'separuh-aku',
+    title: 'Separuh Aku',
+    artist: 'NOAH',
+    artwork: '#315a52',
+    genre: 'Pop',
+    key: 'G Major',
+    difficulty: 'Easy',
+    contributor: '@chordify',
+    verified: false,
+    lyrics: [
+      { chord: 'G', line: 'Dan terjadi lagi' },
+      { chord: 'D/F#', line: 'Kisah lama yang terulang kembali' },
+      { chord: 'Em7', line: 'Kau terluka lagi' },
+      { chord: 'Cadd9', line: 'Dari cinta rumit yang kau jalani' },
+      { chord: 'G', line: 'Aku ingin kau merasa' },
+      { chord: 'D/F#', line: 'Kamu mengerti aku mengerti' },
+      { chord: 'Em7', line: 'Kau tak sendiri' },
+      { chord: 'Cadd9', line: 'Hadapi dunia ini' },
+    ],
+  },
+  {
+    id: 'dan',
+    title: 'Dan',
+    artist: 'Sheila On 7',
+    artwork: '#6b3d3d',
+    genre: 'Pop Rock',
+    key: 'C Major',
+    difficulty: 'Easy',
+    contributor: '@dimasguitar',
+    verified: false,
+  },
+  {
+    id: 'kangen',
+    title: 'Kangen',
+    artist: 'Dewa 19',
+    artwork: '#3e4f72',
+    genre: 'Rock',
+    key: 'D Major',
+    difficulty: 'Intermediate',
+    contributor: '@chordify',
+    verified: true,
+  },
+  {
+    id: 'komang',
+    title: 'Komang',
+    artist: 'Raim Laode',
+    artwork: '#745d36',
+    genre: 'Pop',
+    key: 'G Major',
+    difficulty: 'Beginner',
+    contributor: '@nadyachords',
+    verified: false,
+  },
+  {
+    id: 'sempurna',
+    title: 'Sempurna',
+    artist: 'Andra and The Backbone',
+    artwork: '#745d36',
+    genre: 'Pop Rock',
+    key: 'A Major',
+    difficulty: 'Intermediate',
+    contributor: '@dimasguitar',
+    verified: false,
+  },
+  {
+    id: 'evaluasi',
+    title: 'Evaluasi',
+    artist: 'Hindia',
+    artwork: '#3e4f72',
+    genre: 'Indie',
+    key: 'B Minor',
+    difficulty: 'Intermediate',
+    contributor: '@nadyachords',
+    verified: false,
+  },
+  {
+    id: 'rumah-ke-rumah',
+    title: 'Rumah Ke Rumah',
+    artist: 'Hindia',
+    artwork: '#6b3d3d',
+    genre: 'Indie',
+    key: 'E Major',
+    difficulty: 'Easy',
+    contributor: '@chordify',
+    verified: false,
+  },
+  {
+    id: 'akad',
+    title: 'Akad',
+    artist: 'Payung Teduh',
+    artwork: '#315a52',
+    genre: 'Acoustic',
+    key: 'C Major',
+    difficulty: 'Beginner',
+    contributor: '@dimasguitar',
+    verified: false,
+  },
+]
+
+export const GENRES = ['ALL SONGS', 'POP', 'ROCK', 'INDIE', 'ALTERNATIVE', 'ACOUSTIC']
+
+export const SORTS = ['Most Relevant', 'Newest', 'Most Played', 'Difficulty']
+
+export const RECENT_SONGS = SONGS.slice(0, 4).map((song) => ({
+  ...song,
+  meta: song.verified ? '✓ Verified Musician' : `by ${song.contributor}`,
+}))
+
+export const POPULAR_SONGS = SONGS.slice(4, 8).map((song) => ({
+  ...song,
+  meta: 'Community contribution',
+}))
