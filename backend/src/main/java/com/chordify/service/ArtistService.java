@@ -21,6 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>Sama seperti {@link SongService}, class ini memenuhi kontrak
  * {@link Searchable} sehingga pencarian bisa dipakai lewat tipe kontrak.
+ *
+ * <p><b>Konsep PBO (Tabel VI):</b>
+ * <ul>
+ *   <li>[PBO-6] Interface — {@code ArtistService implements Searchable<Artist>},
+ *       jadi artis bisa dicari tanpa service ini perlu tahu struktur data musik.</li>
+ * </ul>
  */
 @Service
 public class ArtistService implements Searchable<Artist> {

@@ -15,6 +15,9 @@ public class ChordTransposer extends ChordProcessor {
     /**
      * Menggeser satu chord.
      *
+     * <p>[PBO-9] Method Overriding — implementasi subclass untuk method abstrak
+     * {@code process(Chord, int)} milik {@link ChordProcessor}.
+     *
      * @param chord chord yang akan digeser
      * @param amount jumlah semitone; positif naik, negatif turun
      * @return simbol chord hasil geser

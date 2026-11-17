@@ -11,6 +11,14 @@ import jakarta.persistence.Table;
  * Genre lagu, misalnya Pop atau Rock.
  *
  * <p>Satu genre punya banyak lagu (relasi satu ke banyak dari {@link Song}).
+ *
+ * <p><b>Konsep PBO (Tabel VI):</b>
+ * <ul>
+ *   <li>[PBO-1] Class &amp; Object — {@code Genre} adalah class; tiap baris di
+ *       tabel {@code genres} adalah objeknya.</li>
+ *   <li>[PBO-2] Encapsulation — atribut private, diakses lewat getter/setter.</li>
+ *   <li>[PBO-7] Constructor — objek genre dibuat lewat {@code new Genre(name)}.</li>
+ * </ul>
  */
 @Entity
 @Table(name = "genres")

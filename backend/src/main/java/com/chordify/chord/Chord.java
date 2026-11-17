@@ -14,6 +14,19 @@ import java.util.regex.Pattern;
  *
  * <p>Objeknya immutable. {@link #transpose(int)} tidak mengubah chord yang
  * sudah ada, tapi mengembalikan chord baru.
+ *
+ * <p><b>Konsep PBO (Tabel VI):</b>
+ * <ul>
+ *   <li>[PBO-1] Class &amp; Object — {@code Chord} adalah class domain untuk satu
+ *       simbol chord; objeknya dibuat lewat {@code new Chord(...)} atau
+ *       {@link #parse(String)}.</li>
+ *   <li>[PBO-2] Encapsulation — atribut {@code final} dan private, dibaca lewat
+ *       getter; chord tidak bisa diubah setelah dibuat.</li>
+ *   <li>[PBO-7] Constructor — objek hanya bisa dibuat lewat konstruktor yang
+ *       memvalidasi nadanya.</li>
+ *   <li>[PBO-8] Method Overloading — dua konstruktor dengan nama sama tapi
+ *       jumlah parameter berbeda: tiga argumen dan empat argumen.</li>
+ * </ul>
  */
 public final class Chord {
 
@@ -21,10 +34,11 @@ public final class Chord {
     private static final Map<String, Integer> NOTE_SEMITONES = Map.ofEntries(
             Map.entry("C", 0), Map.entry("C#", 1), Map.entry("Db", 1),
             Map.entry("D", 2), Map.entry("D#", 3), Map.entry("Eb", 3),
-            Map.entry("E", 4), Map.entry("F", 5), Map.entry("F#", 6),
-            Map.entry("Gb", 6), Map.entry("G", 7), Map.entry("G#", 8),
-            Map.entry("Ab", 8), Map.entry("A", 9), Map.entry("A#", 10),
-            Map.entry("Bb", 10), Map.entry("B", 11));
+            Map.entry("E", 4), Map.entry("E#", 5), Map.entry("F", 5),
+            Map.entry("F#", 6), Map.entry("Gb", 6),
+            Map.entry("G", 7), Map.entry("G#", 8), Map.entry("Ab", 8),
+            Map.entry("A", 9), Map.entry("A#", 10), Map.entry("Bb", 10),
+            Map.entry("B", 11), Map.entry("B#", 0));
 
     /** Nama nada hasil geser, gaya kres. */
     private static final String[] SHARP_NAMES = {
@@ -70,6 +84,9 @@ public final class Chord {
 
     /**
      * Chord pada posisi tertentu di fretboard.
+     *
+     * <p>[PBO-8] Method Overloading — konstruktor ini menambah satu parameter
+     * dibandingkan versi tiga argumen di atas, dengan nama sama.
      *
      * @param root nada akar, misalnya "G"
      * @param quality kualitas chord; null berarti major

@@ -42,4 +42,11 @@ public class ChordController {
                                    @RequestParam(defaultValue = "0") int semitones) {
         return chordService.transpose(symbol, semitones);
     }
+
+    /** Chord dengan nada bass yang dibalik, misalnya {@code C} menjadi {@code C/E}. */
+    @GetMapping("/{symbol}/inversion")
+    public ChordResponse invert(@PathVariable String symbol,
+                                @RequestParam(defaultValue = "1") int degree) {
+        return chordService.invert(symbol, degree);
+    }
 }

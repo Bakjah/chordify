@@ -19,6 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>Class ini juga memenuhi kontrak {@link Searchable}, jadi pencarian genre
  * bisa dipanggil lewat tipe kontrak, sama seperti {@link SongService}.
+ *
+ * <p><b>Konsep PBO (Tabel VI):</b>
+ * <ul>
+ *   <li>[PBO-6] Interface — {@code GenreService implements Searchable<Genre>}.</li>
+ * </ul>
  */
 @Service
 public class GenreService implements Searchable<Genre> {

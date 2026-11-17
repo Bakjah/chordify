@@ -36,6 +36,16 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>Class ini memenuhi kontrak {@link Searchable} sehingga pencarian lagu bisa
  * dipakai lewat tipe kontrak, bukan hanya lewat implementasi konkret.
+ *
+ * <p><b>Konsep PBO (Tabel VI):</b>
+ * <ul>
+ *   <li>[PBO-4] Polymorphism — {@code ChordProcessor} disuntik sebagai tipe
+ *       abstrak, jadi {@link #transpose(Long, int)} tidak perlu tahu subclass
+ *       mana yang dipakai; status verifikasi pun diambil lewat
+ *       {@code contributor.isVerified()}.</li>
+ *   <li>[PBO-6] Interface — {@code SongService implements Searchable<Song>}.</li>
+ *   <li>[PBO-7] Constructor — semua dependensi disuntikkan lewat konstruktor.</li>
+ * </ul>
  */
 @Service
 public class SongService implements Searchable<Song> {
@@ -50,6 +60,7 @@ public class SongService implements Searchable<Song> {
     private final ChordProcessor chordProcessor;
     private final MediaStorage mediaStorage;
 
+    /** [PBO-7] Constructor — injeksi dependensi lewat konstruktor. */
     public SongService(SongRepository songRepository,
                        ArtistRepository artistRepository,
                        GenreRepository genreRepository,

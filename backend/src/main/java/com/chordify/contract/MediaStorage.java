@@ -8,6 +8,12 @@ import com.chordify.dto.StoredMedia;
  * <p>Kontrak ini memisahkan kebutuhan aplikasi dari cara berkas disimpan.
  * Implementasi {@link MediaStorage} yang dipakai saat ini menyimpan berkas di
  * disk, tetapi pemanggil hanya bergantung pada antarmuka ini.
+ *
+ * <p><b>Konsep PBO (Tabel VI):</b>
+ * <ul>
+ *   <li>[PBO-6] Interface — kontrak {@code MediaStorage}; service cukup
+ *       bergantung pada antarmuka ini, bukan pada implementasi disk-nya.</li>
+ * </ul>
  */
 public interface MediaStorage {
 

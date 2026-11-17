@@ -21,10 +21,25 @@ import java.time.LocalDateTime;
  *
  * <p>Relasi sesuai ERD: satu lagu milik satu {@link Artist} dan satu {@link Genre},
  * dan bisa disumbangkan oleh satu {@link User} sebagai kontributor.
+ *
+ * <p><b>Konsep PBO (Tabel VI):</b>
+ * <ul>
+ *   <li>[PBO-1] Class &amp; Object — {@code Song} adalah class; setiap baris di
+ *       tabel {@code songs} adalah objeknya, dibuat lewat {@code new Song(...)}.</li>
+ *   <li>[PBO-2] Encapsulation — semua atribut {@code private}; isi lagu hanya
+ *       dibaca lewat getter dan diubah lewat setter atau method domain.</li>
+ *   <li>[PBO-6] Interface — {@code Song} memenuhi kontrak {@link Reportable},
+ *       sehingga bisa dilaporkan tanpa service perlu tahu detail lagunya.</li>
+ *   <li>[PBO-7] Constructor — objek hanya boleh dibuat lewat konstruktor yang
+ *       mewajibkan judul, artis, dan genre.</li>
+ * </ul>
  */
 @Entity
 @Table(name = "songs")
 public class Song implements Reportable {
+
+    // [PBO-2] Encapsulation — seluruh atribut di bawah private, diakses lewat
+    // getter/setter atau method domain (misal isPublished(), changePasswordHash()).
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -90,6 +105,7 @@ public class Song implements Reportable {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    /** [PBO-7] Constructor — versi kosong dipakai Hibernate saat memuat baris dari database. */
     public Song() {
         // dipakai Hibernate saat memuat baris dari database
     }
@@ -99,6 +115,8 @@ public class Song implements Reportable {
      *
      * <p>Capo default nol dan status default {@link SongStatus#PUBLISHED} supaya
      * lagu baru langsung tampil.
+     *
+     * <p>[PBO-7] Constructor — inisialisasi objek lewat {@code new Song(...)}.
      */
     public Song(String title, Artist artist, Genre genre) {
         this.title = title;

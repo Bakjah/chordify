@@ -25,6 +25,13 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>Member hanya menandai; keputusan ada di tangan admin. Laporan terbuka yang
  * sama untuk lagu yang sama tidak dibuat dua kali, supaya antrean admin tidak
  * penuh duplikat.
+ *
+ * <p><b>Konsep PBO (Tabel VI):</b>
+ * <ul>
+ *   <li>[PBO-7] Constructor — dependensi disuntikkan lewat konstruktor.</li>
+ *   <li>[PBO-8] Method Overloading — dua method {@code submit} dengan nama sama
+ *       tapi parameter berbeda.</li>
+ * </ul>
  */
 @Service
 public class ReportService {
@@ -34,6 +41,7 @@ public class ReportService {
     private final ReportRepository reportRepository;
     private final NotificationService notificationService;
 
+    /** [PBO-7] Constructor — injeksi dependensi lewat konstruktor. */
     public ReportService(UserRepository userRepository,
                           SongRepository songRepository,
                           ReportRepository reportRepository,
@@ -64,6 +72,9 @@ public class ReportService {
      *
      * <p>Overload dari {@link #submit(Long, ReportRequest)}: pemanggil cukup
      * mengoper objek {@link Reportable} tanpa perlu tahu id-nya.
+     *
+     * <p>[PBO-8] Method Overloading — nama method sama dengan overload di atas,
+     * tapi jumlah dan tipe parameter berbeda.
      */
     @Transactional
     public ReportResponse submit(Long userId, Reportable reportable, ReportCategory category, String details) {

@@ -1,6 +1,7 @@
 package com.chordify.service;
 
 import com.chordify.chord.Chord;
+import com.chordify.chord.ChordInverter;
 import com.chordify.chord.ChordProcessor;
 import com.chordify.dto.ChordFinger;
 import com.chordify.dto.ChordResponse;
@@ -61,6 +62,9 @@ public class ChordService {
 
     private final ChordProcessor chordProcessor;
 
+    /** Processor kedua dari abstract class yang sama: membalik urutan nada chord. */
+    private final ChordProcessor chordInverter = new ChordInverter();
+
     public ChordService(ChordProcessor chordProcessor) {
         this.chordProcessor = chordProcessor;
     }
@@ -105,6 +109,27 @@ public class ChordService {
                 shifted,
                 shifted + " Chord",
                 parsed.transpose(semitones).category(),
+                parsed.getPosition(),
+                List.of());
+    }
+
+    /**
+     * Chord hasil pembalikan urutan nada.
+     *
+     * @param symbol simbol chord asal, misalnya {@code C}
+     * @param degree tingkat inversi: 1 untuk nada ketiga ({@code C/E}), 2 untuk nada kelima ({@code C/G})
+     */
+    public ChordResponse invert(String symbol, int degree) {
+        Chord parsed = Chord.parse(symbol);
+        if (parsed == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Simbol chord tidak valid: " + symbol);
+        }
+        String inverted = chordInverter.process(parsed, degree);
+        return new ChordResponse(
+                id(inverted),
+                inverted,
+                inverted + " Chord",
+                parsed.category(),
                 parsed.getPosition(),
                 List.of());
     }

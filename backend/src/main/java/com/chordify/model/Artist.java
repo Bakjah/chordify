@@ -11,6 +11,14 @@ import jakarta.persistence.Table;
  * Artis atau grup yang memiliki lagu.
  *
  * <p>Satu artis punya banyak lagu (relasi satu ke banyak dari {@link Song}).
+ *
+ * <p><b>Konsep PBO (Tabel VI):</b>
+ * <ul>
+ *   <li>[PBO-1] Class &amp; Object — {@code Artist} adalah class; tiap baris di
+ *       tabel {@code artists} adalah objeknya.</li>
+ *   <li>[PBO-2] Encapsulation — atribut private, diakses lewat getter/setter.</li>
+ *   <li>[PBO-7] Constructor — objek artis dibuat lewat {@code new Artist(name)}.</li>
+ * </ul>
  */
 @Entity
 @Table(name = "artists")

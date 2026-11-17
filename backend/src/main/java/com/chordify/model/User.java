@@ -21,6 +21,22 @@ import jakarta.persistence.Table;
  * <p>Password tidak pernah disimpan apa adanya: yang disimpan adalah hash-nya,
  * dan hash itu hanya bisa diganti lewat aksi domain {@link #changePasswordHash(String)}
  * supaya tidak bisa dimanipulasi dari luar (encapsulation).
+ *
+ * <p><b>Konsep PBO (Tabel VI):</b>
+ * <ul>
+ *   <li>[PBO-1] Class &amp; Object — {@code User} adalah class; objeknya adalah
+ *       akun Member atau Admin.</li>
+ *   <li>[PBO-2] Encapsulation — atribut private; {@code passwordHash} tidak punya
+ *       setter publik, hanya bisa diubah lewat {@link #changePasswordHash(String)}.</li>
+ *   <li>[PBO-3] Inheritance — {@code User} adalah superclass dari {@link Member}
+ *       dan {@link Admin}.</li>
+ *   <li>[PBO-4] Polymorphism — {@link #isVerified()} dan {@link #getRole()} punya
+ *       implementasi berbeda di tiap anak class.</li>
+ *   <li>[PBO-5] Abstraction — class abstrak: tidak bisa di-instansiasi sendiri,
+ *       hanya lewat subclass-nya.</li>
+ *   <li>[PBO-7] Constructor — dua konstruktor: kosong untuk Hibernate dan
+ *       konstruktor domain yang mewajibkan username, email, dan hash password.</li>
+ * </ul>
  */
 @Entity
 @Table(name = "users")
@@ -53,13 +69,16 @@ public abstract class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    /** Konstruktor kosong — dipakai Hibernate saat memuat baris dari database. */
+    /** [PBO-7] Constructor — versi kosong dipakai Hibernate saat memuat baris dari database. */
     protected User() {
     }
 
     /**
      * Konstruktor domain: akun baru harus selalu punya username, email, dan hash password.
      * Tidak ada jalan lain untuk membuat akun yang tidak punya ketiga nilai ini.
+     *
+     * <p>[PBO-7] Constructor — objek akun selalu dibuat lewat konstruktor ini,
+     * lalu mewarisikonstruktor ke {@link Member} atau {@link Admin}.
      */
     protected User(String username, String email, String passwordHash) {
         this.username = username;
@@ -78,6 +97,9 @@ public abstract class User {
     /**
      * Status verifikasi. Hanya Member yang bisa diverifikasi, role lain otomatis tidak
      * (overriding). Dipanggil lewat {@code User} sehingga tidak perlu cek {@code instanceof}.
+     *
+     * <p>[PBO-4] Polymorphism — method ini dioverride di {@link Member}; pemanggil
+     * cukup menulis {@code user.isVerified()} untuk tipe apa pun.
      */
     public boolean isVerified() {
         return false;
