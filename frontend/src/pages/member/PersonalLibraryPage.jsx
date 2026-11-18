@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import PlaylistCard from '../../components/library/PlaylistCard.jsx'
 import PageShell from '../../components/layout/PageShell.jsx'
+import SongCarousel from '../../components/song/SongCarousel.jsx'
 import { LIBRARY_TABS } from '../../constants/library.js'
 import { ROUTES } from '../../constants/routes.js'
 import { getErrorMessage } from '../../services/api.js'
@@ -53,7 +54,7 @@ function LibrarySongCard({ song }) {
   return (
     <Link
       to={ROUTES.SONG_DETAIL(song.id)}
-      className="relative block h-[235px] w-[205px] rounded-[12px] bg-app-card transition-colors hover:bg-app-elevated"
+      className="relative block h-[235px] w-[205px] shrink-0 rounded-[12px] bg-app-card transition-colors hover:bg-app-elevated"
     >
       <div
         className="absolute left-[12px] top-[12px] h-[120px] w-[181px] rounded-[8px]"
@@ -265,16 +266,16 @@ export default function PersonalLibraryPage() {
     </form>
   )
 
-  const renderSongs = (songs, kosong) => (
+  const renderSongs = (songs, kosong, title) => (
     <>
       {songs.length === 0 ? (
         <EmptyNote>{kosong}</EmptyNote>
       ) : (
-        <div className="mt-[10px] flex flex-wrap gap-[20px]">
+        <SongCarousel title={title}>
           {songs.map((song) => (
             <LibrarySongCard key={song.id} song={song} />
           ))}
-        </div>
+        </SongCarousel>
       )}
     </>
   )
@@ -348,10 +349,9 @@ export default function PersonalLibraryPage() {
 
         {tab === 'Overview' && (
           <>
-            <h2 className="mt-[38px] text-[22px] font-bold leading-[30px] text-app-text">
-              My Favorites
-            </h2>
-            {renderSongs(favorites, 'Belum ada lagu favorit. Tekan ♡ Favorite di halaman lagu.')}
+            <div className="mt-[38px]">
+              {renderSongs(favorites, 'Belum ada lagu favorit. Tekan ♡ Favorite di halaman lagu.', 'My Favorites')}
+            </div>
 
             <h2 className="mt-[45px] text-[22px] font-bold leading-[30px] text-app-text">
               Your Playlists
@@ -366,12 +366,9 @@ export default function PersonalLibraryPage() {
         )}
 
         {tab === 'Favorites' && (
-          <>
-            <h2 className="mt-[38px] text-[22px] font-bold leading-[30px] text-app-text">
-              My Favorites
-            </h2>
-            {renderSongs(favorites, 'Belum ada lagu favorit. Tekan ♡ Favorite di halaman lagu.')}
-          </>
+          <div className="mt-[38px]">
+            {renderSongs(favorites, 'Belum ada lagu favorit. Tekan ♡ Favorite di halaman lagu.', 'My Favorites')}
+          </div>
         )}
 
         {tab === 'Playlists' && (
@@ -409,12 +406,9 @@ export default function PersonalLibraryPage() {
         )}
 
         {tab === 'Recently Viewed' && (
-          <>
-            <h2 className="mt-[38px] text-[22px] font-bold leading-[30px] text-app-text">
-              Recently Viewed
-            </h2>
-            {renderSongs(history, 'Belum ada riwayat. Buka sebuah lagu untuk mulai mencatat.')}
-          </>
+          <div className="mt-[38px]">
+            {renderSongs(history, 'Belum ada riwayat. Buka sebuah lagu untuk mulai mencatat.', 'Recently Viewed')}
+          </div>
         )}
       </div>
     </PageShell>

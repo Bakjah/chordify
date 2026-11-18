@@ -12,3 +12,14 @@
     @apply bg-chord-bg font-sans text-chord-text antialiased;
   }
 }
+
+@layer utilities {
+  /* Scrollbar disembunyikan pada track carousel; geserannya lewat tombol. */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

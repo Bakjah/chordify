@@ -16,7 +16,9 @@ export default function Sidebar() {
     item.to === pathname || (item.to === ROUTES.SONGS && isSongDetail(pathname))
 
   return (
-    <aside className="hidden w-[236px] shrink-0 flex-col bg-app-sidebar lg:flex">
+    // Sticky + self-start: sidebar tetap menempel di kiri layar saat halaman
+    // digulir, dan ikut tinggi layar penuh supaya warnanya menutup sisi kiri.
+    <aside className="hidden h-screen w-[236px] shrink-0 self-start flex-col overflow-y-auto bg-app-sidebar lg:sticky lg:top-0 lg:flex">
       <div className="px-[26px] pt-[26px]">
         <p className="text-[25px] font-bold leading-[36px] text-app-text">CHORDIFY</p>
         <p className="mt-[-2px] h-[20px] font-mono text-[9px] font-bold leading-[20px] text-app-accent">

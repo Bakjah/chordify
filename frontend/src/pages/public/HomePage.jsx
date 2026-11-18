@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import PageShell from '../../components/layout/PageShell.jsx'
 import SearchField from '../../components/search/SearchField.jsx'
 import SongCard from '../../components/song/SongCard.jsx'
+import SongCarousel from '../../components/song/SongCarousel.jsx'
 import { ROUTES } from '../../constants/routes.js'
 import { useAuth } from '../../hooks/useAuth.js'
 import { songService } from '../../services/songService.js'
@@ -29,7 +30,7 @@ export default function HomePage() {
   useEffect(() => {
     let aktif = true
     songService
-      .list({ size: 8 })
+      .list({ size: 24 })
       .then((data) => {
         if (aktif) setSongs(data.content)
       })
@@ -39,8 +40,11 @@ export default function HomePage() {
     }
   }, [])
 
-  const recentSongs = songs.slice(0, 4)
-  const popularSongs = songs.slice(4, 8)
+  // Satu baris untuk lagu yang baru masuk, satu lagi untuk sisanya. Lagu
+  // dibagi dua sama besar supaya kedua baris tetap ada walau jumlahnya sedikit.
+  const half = Math.ceil(songs.length / 2)
+  const recentSongs = songs.slice(0, half)
+  const popularSongs = songs.slice(half)
 
   return (
     <PageShell>
@@ -61,36 +65,37 @@ export default function HomePage() {
         inputClassName="text-[15px]"
       />
 
-      <div className="mt-[40px] flex items-start justify-between">
-        <h2 className="text-[22px] font-bold leading-[32px] text-app-text">Recently Added</h2>
-        <Link
-          to={ROUTES.SONGS}
-          className="mt-[9px] font-mono text-[10px] leading-[20px] text-app-accent"
+      <div className="mt-[40px]">
+        <SongCarousel
+          title="Recently Added"
+          action={
+            <Link to={ROUTES.SONGS} className="font-mono text-[10px] leading-[20px] text-app-accent">
+              SEE ALL&nbsp;&nbsp;→
+            </Link>
+          }
         >
-          SEE ALL&nbsp;&nbsp;→
-        </Link>
+          {recentSongs.map((song) => (
+            <SongCard
+              key={song.id}
+              song={{ ...song, meta: song.verified ? '✓ Verified Musician' : `by ${song.contributor}` }}
+              variant={song.verified ? 'verified' : 'contributor'}
+            />
+          ))}
+        </SongCarousel>
       </div>
 
-      <div className="mt-[6px] flex gap-[20px]">
-        {recentSongs.map((song) => (
-          <SongCard
-            key={song.id}
-            song={{ ...song, meta: song.verified ? '✓ Verified Musician' : `by ${song.contributor}` }}
-            variant={song.verified ? 'verified' : 'contributor'}
-          />
-        ))}
+      <div className="mt-[40px]">
+        <SongCarousel title="Popular with guitarists">
+          {popularSongs.map((song) => (
+            <SongCard
+              key={song.id}
+              song={{ ...song, meta: 'Community contribution' }}
+              variant="community"
+            />
+          ))}
+        </SongCarousel>
       </div>
-
-      <h2 className="mt-[40px] text-[22px] font-bold leading-[32px] text-app-text">
-        Popular with guitarists
-      </h2>
-
-      <div className="mt-[8px] flex gap-[20px]">
-        {popularSongs.map((song) => (
-          <SongCard key={song.id} song={{ ...song, meta: 'Community contribution' }} variant="community" />
-        ))}
-      </div>
-      </div>
+    </div>
     </PageShell>
   )
 }
